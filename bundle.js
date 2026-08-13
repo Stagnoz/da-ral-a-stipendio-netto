@@ -1090,7 +1090,6 @@
     calcolato = true;
     document.body.dataset.calcolato = "";
     aggiorna();
-    adattaPannello();
     const colonna = document.querySelector(".colonna-risultati");
     if (colonna && $("risultati").style.display !== "none") {
       colonna.classList.remove("risultati-updated");

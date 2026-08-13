@@ -514,9 +514,11 @@ $('form').addEventListener('submit', (e) => {
   calcolato = true;
   document.body.dataset.calcolato = '';
   aggiorna();
-  // Il vincolo d'altezza sulla riga cade dopo il calcolo: il pannello
-  // puo' tornare a stare in una schermata senza essere stretto.
-  adattaPannello();
+  // Qui non si rimisura di proposito. Dopo il calcolo il vincolo
+  // d'altezza si allenta e il pannello potrebbe tornare largo, ma
+  // succederebbe nello stesso istante in cui compaiono i risultati: la
+  // pagina si riassesterebbe sotto gli occhi proprio mentre si legge la
+  // cifra. Il livello resta quello e si ricalcola al ridimensionamento.
 
   const colonna = document.querySelector('.colonna-risultati');
   if (colonna && $('risultati').style.display !== 'none') {
