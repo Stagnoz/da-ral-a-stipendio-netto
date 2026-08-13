@@ -687,7 +687,7 @@
     },
     tfr: {
       titolo: "Quota di TFR",
-      testo: "Trattamento di Fine Rapporto: \xE8 una quota di retribuzione differita che matura ogni anno e si incassa al termine del rapporto di lavoro. La quota annua \xE8 pari al 7,41% della RAL: lo 0,50% va all'INPS come contributo pensionistico, mentre il restante 6,91% costituisce l'accantonamento effettivo per il lavoratore. Per l'azienda \xE8 un costo reale fin dal primo anno, anche se l'esborso avverr\xE0 al termine del contratto (o versato ai fondi pensione / Fondo Tesoreria INPS per le aziende con oltre 50 dipendenti).",
+      testo: "Trattamento di Fine Rapporto: \xE8 una quota di retribuzione differita che matura ogni anno e si incassa al termine del rapporto di lavoro. La quota annua \xE8 pari al 7,41% della RAL: lo 0,50% va all'INPS come contributo pensionistico, mentre il restante 6,91% costituisce l'accantonamento effettivo per il lavoratore. ",
       norma: "art. 2120 c.c. \xB7 art. 3 L. 297/1982"
     },
     costoTotale: {
@@ -985,13 +985,18 @@
   }
   $("form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const primaVolta = !calcolato;
     calcolato = true;
     document.body.dataset.calcolato = "";
     aggiorna();
+    const colonna = document.querySelector(".colonna-risultati");
+    if (colonna) {
+      colonna.classList.remove("risultati-updated");
+      void colonna.offsetWidth;
+      colonna.classList.add("risultati-updated");
+    }
     const impilato = window.matchMedia("(max-width: 1100px)").matches;
-    if (primaVolta && impilato && $("risultati").style.display === "block") {
-      document.querySelector(".colonna-risultati").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (impilato && colonna) {
+      colonna.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
   $("ral").addEventListener("input", () => {

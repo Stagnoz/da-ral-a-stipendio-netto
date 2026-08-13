@@ -522,9 +522,6 @@
     button[type=submit] {
       width: 100%;
       margin-top: 11px;
-      /* Sotto il bottone iniziano le sezioni facoltative, che sono un'altra
-       cosa dal comando principale: la riga di separazione non deve
-       sembrare attaccata al bottone. */
       margin-bottom: 14px;
       padding: 11px 20px;
       font-size: 0.92rem;
@@ -536,11 +533,26 @@
       border: none;
       border-radius: var(--radius);
       cursor: pointer;
-      transition: background .15s;
+      transition: background .15s, transform .1s;
     }
 
     button[type=submit]:hover {
       background: #333;
+    }
+
+    button[type=submit]:active {
+      transform: scale(0.98);
+      background: #000;
+    }
+
+    @keyframes calcola-pulse {
+      0% { opacity: 0.8; transform: scale(0.997); }
+      50% { opacity: 1; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .risultati-updated {
+      animation: calcola-pulse 0.25s ease-out;
     }
 
     /* Riga fissa sotto il titolo di ogni gruppo di campi: perche' quel

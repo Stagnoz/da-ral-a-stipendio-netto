@@ -447,18 +447,20 @@ function tabella(idTavola) {
 // -------------------------------------------------------------
 $('form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const primaVolta = !calcolato;
   calcolato = true;
   document.body.dataset.calcolato = '';
   aggiorna();
 
-  // Su schermo largo il risultato e' gia' accanto al form e non serve
-  // muovere niente. Quando le colonne si impilano invece sta sotto, e
-  // premere "Calcola" senza vedere nulla cambiare e' disorientante.
+  const colonna = document.querySelector('.colonna-risultati');
+  if (colonna) {
+    colonna.classList.remove('risultati-updated');
+    void colonna.offsetWidth;
+    colonna.classList.add('risultati-updated');
+  }
+
   const impilato = window.matchMedia('(max-width: 1100px)').matches;
-  if (primaVolta && impilato && $('risultati').style.display === 'block') {
-    document.querySelector('.colonna-risultati')
-      .scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (impilato && colonna) {
+    colonna.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 });
 $('ral').addEventListener('input', () => {
