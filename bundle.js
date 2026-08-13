@@ -989,14 +989,19 @@
     document.body.dataset.calcolato = "";
     aggiorna();
     const colonna = document.querySelector(".colonna-risultati");
-    if (colonna) {
+    if (colonna && $("risultati").style.display !== "none") {
       colonna.classList.remove("risultati-updated");
       void colonna.offsetWidth;
       colonna.classList.add("risultati-updated");
-    }
-    const impilato = window.matchMedia("(max-width: 1100px)").matches;
-    if (impilato && colonna) {
-      colonna.scrollIntoView({ behavior: "smooth", block: "start" });
+      const impilato = window.matchMedia("(max-width: 1100px)").matches;
+      if (impilato) {
+        colonna.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else if ($("errore").style.display === "block") {
+      $("ral").focus();
+      $("errore").classList.remove("risultati-updated");
+      void $("errore").offsetWidth;
+      $("errore").classList.add("risultati-updated");
     }
   });
   $("ral").addEventListener("input", () => {
@@ -1061,7 +1066,7 @@
   function aggiorna() {
     const ral = valoreRal();
     const mensilita = Number($("mensilita").value);
-    if (!ral || ral < 1e3 || ral > 999e3) {
+    if (!ral || ral < 1e3) {
       $("errore").style.display = "block";
       $("risultati").style.display = "none";
       $("attesa").hidden = false;
