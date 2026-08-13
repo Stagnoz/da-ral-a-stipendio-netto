@@ -1,4 +1,4 @@
-import { PARAMETRI_2026 } from './costanti.js';
+import { PARAMETRI_2026, IMPATRIATI_2026 } from './costanti.js';
 import { 
   risolviDatore, 
   risolviRegione, 
@@ -13,7 +13,8 @@ import {
   detrazioneAltriFamiliari,
   addizionaleLocale,
   bonusCuneo,
-  trattamentoIntegrativo
+  trattamentoIntegrativo,
+  esenzioneImpatriati
 } from './tasse-dipendente.js';
 
 /**
@@ -83,15 +84,32 @@ export function calcolaNetto(ral, mensilita, opzioni = {}) {
   // Le tasse (IRPEF) NON si pagano su tutta la RAL, ma sulla RAL meno i contributi INPS.
   const imponibile = ral - contributiInps;
 
+  // STEP 2-bis: Regime impatriati, se selezionato.
+  // La quota agevolata non concorre a formare il reddito: si toglie qui,
+  // prima di tutto il resto. Da questo punto in poi il reddito di
+  // riferimento e' `imponibileIrpef`, quello ridotto.
+  //
+  // Con due eccezioni, che sono scritte nelle norme e non deducibili:
+  // il taglio del cuneo e il trattamento integrativo guardano il reddito
+  // complessivo COMPRESA la quota esente degli impatriati. Restano
+  // quindi sull'imponibile pieno, piu' sotto.
+  const impatriati = esenzioneImpatriati(imponibile, opzioni.impatriati);
+  const esenzioneImp = impatriati ? impatriati.esenzione : 0;
+  const imponibileIrpef = imponibile - esenzioneImp;
+
   // STEP 3: Calcolo IRPEF Lorda (Tasse di base)
-  const irpefLorda = imposteProgressive(imponibile, p.scaglioniIrpef);
+  const irpefLorda = imposteProgressive(imponibileIrpef, p.scaglioniIrpef);
 
   // STEP 4: Calcolo Detrazioni (Sconti sulle tasse)
-  const detrLavoro = detrazioneLavoroDipendente(imponibile);
+  const detrLavoro = detrazioneLavoroDipendente(imponibileIrpef);
+  // Prima eccezione: l'ulteriore detrazione del cuneo si parametra sul
+  // reddito complessivo comprensivo della quota esente (circ. AdE 4/E
+  // del 16 maggio 2025). Con il regime attivo, quindi, non e' detto che
+  // spetti solo perche' l'imponibile IRPEF e' sceso sotto i 40.000.
   const detrCuneo = detrazioneCuneo(imponibile);
-  const detrConiuge = opzioni.coniuge ? detrazioneConiuge(imponibile) : 0;
-  const detrFigli = detrazioneFigli(imponibile, opzioni.figli || 0);
-  const detrAltri = detrazioneAltriFamiliari(imponibile, opzioni.altriFamiliari || 0);
+  const detrConiuge = opzioni.coniuge ? detrazioneConiuge(imponibileIrpef) : 0;
+  const detrFigli = detrazioneFigli(imponibileIrpef, opzioni.figli || 0);
+  const detrAltri = detrazioneAltriFamiliari(imponibileIrpef, opzioni.altriFamiliari || 0);
   
   const detrFamiliari = detrConiuge + detrFigli + detrAltri;
   
@@ -114,12 +132,20 @@ export function calcolaNetto(ral, mensilita, opzioni = {}) {
   let addizionaleComunale = 0;
   
   if (irpefNetta > 0) {
-    addizionaleRegionale = addizionaleLocale(imponibile, regione);
-    addizionaleComunale = addizionaleLocale(imponibile, comune);
+    addizionaleRegionale = addizionaleLocale(imponibileIrpef, regione);
+    addizionaleComunale = addizionaleLocale(imponibileIrpef, comune);
   }
 
   // STEP 6: Bonus aggiuntivi in busta paga
+  // Stessa eccezione della detrazione cuneo: la somma esentasse e il
+  // trattamento integrativo si misurano sul reddito complessivo
+  // comprensivo della quota esente (circ. AdE 4/E 2025 per il cuneo,
+  // circ. AdE 29/E 2020 per il trattamento integrativo). Il regime
+  // impatriati non fa scendere nessuno dentro queste fasce.
   const bonus = bonusCuneo(imponibile);
+  // La soglia dei 15.000 guarda il reddito pieno, ma la condizione di
+  // capienza no: quella confronta l'imposta lorda vera, che con il
+  // regime e' piu' bassa. A redditi bassi puo' quindi non spettare.
   const integrativo = trattamentoIntegrativo(imponibile, irpefLorda, detrLavoro);
 
   // STEP 7: Risultato Finale
@@ -147,6 +173,9 @@ export function calcolaNetto(ral, mensilita, opzioni = {}) {
     preset: datore,
     aliquotaLavoratore,
     imponibile,
+    impatriati,
+    esenzioneImpatriati: esenzioneImp,
+    imponibileIrpef,
     irpefLorda,
     detrazioneLavoro: detrLavoro,
     detrazioneCuneo: detrCuneo,
@@ -166,5 +195,42 @@ export function calcolaNetto(ral, mensilita, opzioni = {}) {
     nettoAnnuo,
     nettoMese,
     incidenzaTrattenute: (totaleTrattenute - bonus - integrativo) / ral,
+  };
+}
+
+/**
+ * Quanto vale il regime impatriati, in euro: rifà lo stesso calcolo
+ * senza il regime e restituisce la differenza.
+ *
+ * Si rifà il conto invece di sommare le imposte risparmiate perché il
+ * regime non tocca solo l'IRPEF: sposta anche le detrazioni, le
+ * addizionali e le somme del taglio del cuneo, che dipendono tutte dal
+ * reddito. L'unico modo onesto di dire "quanto incassi in più" è
+ * mettere a confronto i due netti.
+ *
+ * @param {object} r - Risultato di calcolaNetto con il regime attivo
+ * @param {object} opzioni - Le stesse opzioni passate a calcolaNetto
+ * @returns {object|null} Il confronto, oppure null se il regime non è attivo
+ */
+export function confrontoImpatriati(r, opzioni = {}) {
+  if (!r.impatriati) return null;
+
+  const senza = calcolaNetto(r.ral, r.mensilita, Object.assign({}, opzioni, { impatriati: '' }));
+
+  const imposte = (x) => x.irpefNetta + x.addizionaleRegionale + x.addizionaleComunale;
+  const guadagnoAnnuo = r.nettoAnnuo - senza.nettoAnnuo;
+
+  return {
+    senza,
+    guadagnoAnnuo,
+    guadagnoMese: guadagnoAnnuo / r.mensilita,
+    // Il quinquennio è la durata massima del regime, non un impegno:
+    // vale se la RAL resta questa per tutti e cinque gli anni.
+    guadagnoDurata: guadagnoAnnuo * IMPATRIATI_2026.anni,
+    nettoSenza: senza.nettoAnnuo,
+    nettoCon: r.nettoAnnuo,
+    imposteSenza: imposte(senza),
+    imposteCon: imposte(r),
+    quotaNettoInPiu: guadagnoAnnuo / senza.nettoAnnuo,
   };
 }

@@ -21,6 +21,9 @@ import {
   confrontaConMedia,
   PRESET_DATORE,
   AGEVOLAZIONI_2026,
+  esenzioneImpatriati,
+  confrontoImpatriati,
+  IMPATRIATI_2026,
   MEDIE_RETRIBUTIVE,
   COMUNI,
   REGIONI,
@@ -452,6 +455,141 @@ console.log('\nDetrazioni per carichi di famiglia');
   verifica('nessuna IRPEF negativa con molti carichi', basso.irpefNetta >= 0);
   verifica('detrazioni limitate alla lorda',
     basso.detrazioniApplicate <= basso.irpefLorda + 1e-9);
+}
+
+// ---------------------------------------------------------------
+// Regime impatriati
+// ---------------------------------------------------------------
+console.log('\nRegime impatriati (art. 5 D.Lgs. 209/2023)');
+{
+  // RAL 60.000, industria fino a 15 dipendenti: nessuna quota ripartita,
+  // quindi i contributi restano il 9,19% piu' l'aggiuntivo dell'1%.
+  // IVS 5.514 + 37,76 = 5.551,76 -> imponibile 54.448,24.
+  const senza = nettoBase(60000, 13);
+  vicino('imponibile pieno', 54448.24, senza.imponibile, 0.01);
+
+  const cinquanta = nettoBase(60000, 13, { impatriati: 'base' });
+  // Quota esente: 54.448,24 x 50% = 27.224,12
+  vicino('quota esente 50%', 27224.12, cinquanta.esenzioneImpatriati, 0.01);
+  vicino('imponibile IRPEF agevolato', 27224.12, cinquanta.imponibileIrpef, 0.01);
+  // L'imponibile scende sotto i 28.000: tutto nel primo scaglione.
+  // 27.224,12 x 23% = 6.261,55
+  vicino('IRPEF lorda sul ridotto', 6261.5476, cinquanta.irpefLorda, 0.01);
+  // Le detrazioni guardano il reddito ridotto, quindi salgono:
+  // 1.910 + 1.190 x 0,0596 = 1.980,924, piu' 65 della fascia 25-35k
+  vicino('detrazione lavoro sul ridotto', 2045.924, cinquanta.detrazioneLavoro, 0.001);
+  // Il cuneo no: si parametra sul reddito complessivo comprensivo della
+  // quota esente (circ. AdE 4/E 2025). A 54.448 pieni non spetta, e il
+  // regime non lo fa rientrare nella fascia dei 1.000 €.
+  vicino('detrazione cuneo sul reddito pieno', 0, cinquanta.detrazioneCuneo, 0.01);
+  vicino('IRPEF netta', 4215.6236, cinquanta.irpefNetta, 0.01);
+
+  // I contributi non si toccano: l'agevolazione e' solo fiscale.
+  vicino('contributi INPS invariati', senza.contributiInps, cinquanta.contributiInps, 0.001);
+  verifica('il regime alza il netto',
+    cinquanta.nettoAnnuo > senza.nettoAnnuo,
+    `${senza.nettoAnnuo.toFixed(2)} -> ${cinquanta.nettoAnnuo.toFixed(2)}`);
+
+  // Anche le addizionali si calcolano sul reddito ridotto.
+  verifica('addizionali sul reddito ridotto',
+    cinquanta.addizionaleRegionale < senza.addizionaleRegionale);
+
+  // Variante con figlio minore: 60% invece di 50%.
+  const sessanta = nettoBase(60000, 13, { impatriati: 'figli' });
+  vicino('quota esente 60%', 54448.24 * 0.6, sessanta.esenzioneImpatriati, 0.01);
+  verifica('il 60% batte il 50%', sessanta.nettoAnnuo > cinquanta.nettoAnnuo);
+
+  // Chiave assente o sconosciuta: nessun regime, e il calcolo resta quello pieno.
+  verifica('nessun regime senza opzione', senza.impatriati === null);
+  const inventato = nettoBase(60000, 13, { impatriati: 'sconosciuto' });
+  vicino('chiave sconosciuta ignorata', senza.nettoAnnuo, inventato.nettoAnnuo, 0.001);
+
+  // Tetto dei 600.000: sopra, l'eccedenza resta tassata per intero.
+  const alto = nettoBase(700000, 13, { impatriati: 'base' });
+  verifica('tetto segnalato', alto.impatriati.tettoApplicato);
+  vicino('esenzione ferma al tetto',
+    IMPATRIATI_2026.tettoReddito * 0.5, alto.esenzioneImpatriati, 0.01);
+  vicino('imponibile IRPEF oltre il tetto',
+    alto.imponibile - 300000, alto.imponibileIrpef, 0.01);
+
+  // La funzione da sola, senza passare dal calcolo completo.
+  verifica('nessun regime su imponibile zero', esenzioneImpatriati(0, 'base') === null);
+  vicino('esenzione diretta al 50%', 10000, esenzioneImpatriati(20000, 'base').esenzione, 0.01);
+  vicino('esenzione diretta al 60%', 12000, esenzioneImpatriati(20000, 'figli').esenzione, 0.01);
+
+  // Ogni regime dichiara nome, percentuale e requisito: sono i tre
+  // pezzi che la pagina mostra, e senza uno il menu resta muto.
+  Object.entries(IMPATRIATI_2026.regimi).forEach(([chiave, r]) => {
+    verifica(`il regime "${chiave}" ha nome e sigla`, !!r.nome && !!r.breve);
+    verifica(`il regime "${chiave}" ha il requisito`, !!r.requisito && r.requisito.length > 40);
+    verifica(`il regime "${chiave}" ha una quota esente plausibile`,
+      r.quotaEsente > 0 && r.quotaEsente < 1);
+  });
+
+  // Quanto vale il regime, cioe' il riquadro verde sul lato dipendente.
+  const opz = { preset: 'industriaPiccola', impatriati: 'base' };
+  const confronto = confrontoImpatriati(nettoBase(60000, 13, { impatriati: 'base' }), opz);
+  vicino('guadagno annuo dichiarato',
+    cinquanta.nettoAnnuo - senza.nettoAnnuo, confronto.guadagnoAnnuo, 0.01);
+  vicino('guadagno mensile', confronto.guadagnoAnnuo / 13, confronto.guadagnoMese, 0.01);
+  vicino('guadagno sul quinquennio',
+    confronto.guadagnoAnnuo * IMPATRIATI_2026.anni, confronto.guadagnoDurata, 0.01);
+  vicino('netto senza regime', senza.nettoAnnuo, confronto.nettoSenza, 0.01);
+  vicino('netto con regime', cinquanta.nettoAnnuo, confronto.nettoCon, 0.01);
+  verifica('le imposte scendono', confronto.imposteCon < confronto.imposteSenza);
+  verifica('il guadagno e\' positivo', confronto.guadagnoAnnuo > 0);
+
+  // Il confronto rifa' il calcolo senza regime: deve tenere le altre
+  // opzioni, altrimenti misurerebbe anche la perdita dei carichi di
+  // famiglia e il numero sarebbe gonfiato.
+  const conFamiglia = { preset: 'industriaPiccola', impatriati: 'base', coniuge: true, figli: 2 };
+  const cf = confrontoImpatriati(nettoBase(60000, 13, conFamiglia), conFamiglia);
+  vicino('il confronto tiene i carichi di famiglia',
+    nettoBase(60000, 13, { coniuge: true, figli: 2 }).nettoAnnuo, cf.nettoSenza, 0.01);
+
+  // Senza regime attivo non c'e' niente da mostrare: il riquadro deve
+  // sparire, non mostrare uno zero.
+  verifica('nessun confronto senza regime', confrontoImpatriati(senza, {}) === null);
+
+  // Le due regole che non seguono l'imponibile ridotto. Sono scritte
+  // nelle circolari, non deducibili dal testo dell'art. 5, e sono la
+  // ragione per cui a RAL bassa il regime puo' non convenire.
+  //
+  // RAL 22.000 -> imponibile 19.978: sotto i 20.000, quindi somma
+  // esentasse. Con il regime il reddito IRPEF scende a 7.991, ma la
+  // somma resta quella della fascia piena (4,8% di 19.978 = 958,95).
+  const sottoVentimila = nettoBase(22000, 13, { impatriati: 'figli' });
+  vicino('somma esentasse sul reddito pieno', 958.95, sottoVentimila.bonusCuneo, 0.01);
+  // RAL 12.000 -> imponibile 10.897, sotto i 15.000: la soglia del
+  // trattamento integrativo e' rispettata, ma la condizione di capienza
+  // guarda l'imposta lorda vera, che con il regime non copre piu' la
+  // detrazione da lavoro. Risultato: i 1.200 € non spettano.
+  const bassa = nettoBase(12000, 13, { impatriati: 'base' });
+  vicino('trattamento integrativo perso', 0, bassa.trattamentoIntegrativo, 0.01);
+  vicino('trattamento integrativo senza regime', 1200,
+    nettoBase(12000, 13).trattamentoIntegrativo, 0.01);
+
+  // Di conseguenza il regime non conviene sempre: tra 9.500 e 14.000 di
+  // RAL fa scendere il netto. E' un risultato del calcolo, non un bug,
+  // e la pagina lo dice invece di mostrare un guadagno negativo.
+  const opzBassa = { preset: 'industriaPiccola', impatriati: 'base' };
+  const perdita = confrontoImpatriati(nettoBase(12000, 13, opzBassa), opzBassa);
+  verifica('a RAL 12.000 il regime fa perdere netto', perdita.guadagnoAnnuo < 0,
+    perdita.guadagnoAnnuo.toFixed(2));
+
+  // Sopra la zona di perdita invece conviene sempre, e cresce.
+  let precedente = -Infinity;
+  let monotono = true;
+  let sempreConveniente = true;
+  for (let ral = 25000; ral <= 120000; ral += 500) {
+    const opz25 = { preset: 'industriaPiccola', impatriati: 'figli' };
+    const n = nettoBase(ral, 13, opz25);
+    if (n.nettoAnnuo < precedente - 1e-6) monotono = false;
+    if (confrontoImpatriati(n, opz25).guadagnoAnnuo <= 0) sempreConveniente = false;
+    precedente = n.nettoAnnuo;
+  }
+  verifica('netto crescente con il regime al 60%, da 25.000 in su', monotono);
+  verifica('sopra i 25.000 il regime conviene sempre', sempreConveniente);
 }
 
 // ---------------------------------------------------------------

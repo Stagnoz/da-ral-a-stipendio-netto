@@ -893,6 +893,18 @@
       max-width: 82ch;
     }
 
+    /* Il regime impatriati puo' far scendere il netto: stesso riquadro,
+       colore ribaltato, perche' letto in verde sembrerebbe un guadagno. */
+    .sconto.in-perdita {
+      border-color: var(--red);
+      background: #fdf2f1;
+    }
+
+    .sconto.in-perdita .sconto-label,
+    .sconto.in-perdita .sconto-cifra {
+      color: var(--red);
+    }
+
     .sconto-nota b {
       color: var(--ink);
       font-weight: 600;
@@ -1449,8 +1461,9 @@
       <details class="mini">
         <summary>Ipotesi del calcolo</summary>
         <p><b>Assunzioni:</b> dipendente a tempo indeterminato, calcolo sull&rsquo;intero anno (12 mesi lavorati).</p>
-        <p><b>Impostazioni di default (modificabili):</b> residente a Milano, senza familiari a carico n&eacute;
-          agevolazioni attive. <b>Queste voci si possono cambiare nei riquadri qui sotto</b>.</p>
+        <p><b>Impostazioni di default (modificabili):</b> residente a Milano, senza familiari a carico, senza regime
+          impatriati n&eacute; agevolazioni contributive attive. <b>Queste voci si possono cambiare nei riquadri qui
+            sotto</b>.</p>
         <p><b>Inquadramento dell&rsquo;azienda (modificabile):</b> industria fino a 15 dipendenti, con tasso INAIL allo
           0,5%.
         </p>
@@ -1660,6 +1673,46 @@
             </div>
           </details>
 
+          <details class="sez solo-dipendente">
+            <summary><span class="testo-sez">Regime impatriati
+                <span class="facolt">Clicca qui se rientri dall&rsquo;estero: met&agrave; stipendio
+                  esce dall&rsquo;imponibile (facoltativo)</span></span></summary>
+            <div class="contenuto">
+              <p class="perche"><b>Come funziona l&rsquo;agevolazione.</b> Chi trasferisce la residenza fiscale
+                in Italia dall&rsquo;estero beneficia di un abbattimento diretto dell&rsquo;imponibile fiscale (non
+                una semplice detrazione). La quota esente viene esclusa prima del calcolo dell&rsquo;IRPEF e delle
+                addizionali locali.</p>
+              <div class="row">
+                <div class="field" style="flex:1 1 100%">
+                  <label for="impatriati">Regime applicato</label>
+                  <select id="impatriati">
+                    <option value="" selected>nessuno</option>
+                    <option value="base">Impatriati &mdash; quota esente 50%</option>
+                    <option value="figli">Impatriati con figlio minore &mdash; quota esente 60%</option>
+                  </select>
+                </div>
+              </div>
+              <p class="aliquote-attuali" id="impatriatiAttuali"></p>
+              <ul class="regole">
+                <li><b>Quota esente 50% (Base)</b> &mdash; per chi non &egrave; stato residente in Italia nei 3 anni
+                  precedenti (6-7 se si rientra nello stesso gruppo aziendale), si impegna a rimanere in Italia per
+                  almeno 4 anni ed &egrave; in possesso di elevata qualificazione.</li>
+                <li><b>Quota esente 60% (Con figli)</b> &mdash; stessi requisiti della quota base, con in pi&ugrave; il
+                  trasferimento insieme a un figlio minore residente in Italia (o la nascita/adozione durante il periodo).</li>
+                <li><b>Tetto massimo</b> &mdash; l&rsquo;esenzione si applica fino a 600.000 &euro; di reddito annuo;
+                  la parte eccedente viene tassata normalmente.</li>
+                <li><b>Durata</b> &mdash; valida per 5 anni (l&rsquo;anno del trasferimento e i 4 successivi).</li>
+                <li><b>Due voci restano sul reddito pieno</b> &mdash; taglio del cuneo e trattamento
+                  integrativo si misurano sul reddito comprensivo della quota esente. Sotto i 15.000
+                  &euro; il regime pu&ograve; quindi far perdere il trattamento integrativo e
+                  abbassare il netto: quando succede, il riquadro dei risultati lo dice.</li>
+              </ul>
+              <p class="nota">I contributi previdenziali INPS restano calcolati sull&rsquo;intera RAL (l&rsquo;agevolazione
+                &egrave; solo fiscale) e il costo per l&rsquo;azienda non subisce variazioni. In busta paga viene applicata
+                dal datore di lavoro su richiesta del dipendente (art. 5 D.Lgs. 209/2023).</p>
+            </div>
+          </details>
+
           <!-- Chiusa come le altre: aperta faceva scorrere il pannello gia'
              al primo sguardo, e il preset di partenza va bene per il caso
              base. La riga sotto il titolo dice cosa c'e' dentro. -->
@@ -1716,13 +1769,8 @@
                     <input type="number" id="datoreAliquota" min="0" max="50" step="0.01" value="28.46">
                   </div>
                 </div>
-                <p class="nota">Inserita a mano, l&rsquo;aliquota si applica a tutta la RAL:
-                  il massimale contributivo vale solo sulla quota IVS, che qui non &egrave;
-                  pi&ugrave; distinguibile dal resto.</p>
-                <p class="nota solo-dipendente">Questa aliquota cambia solo il costo per
-                  l&rsquo;azienda. La tua quota resta il 9,19% di IVS: da un numero
-                  complessivo non si sa quanta CIGS e quanto FIS contenga, e inventarlo
-                  darebbe un netto sbagliato con l&rsquo;aria di essere preciso.</p>
+                <p class="nota">Inserendo l&rsquo;aliquota a mano, la percentuale viene applicata sull&rsquo;intera RAL senza distinguere la quota IVS (l&rsquo;unica soggetta a massimale).</p>
+                <p class="nota solo-dipendente">Questa aliquota modifica unicamente il costo per l&rsquo;azienda. Per il calcolo della tua busta paga viene applicata l&rsquo;aliquota base del 9,19% a tuo carico.</p>
               </div>
 
               <p class="nota solo-azienda">Le aliquote per settore si possono trovare in <a
@@ -1731,10 +1779,7 @@
                   href="https://www.testo-unico-sicurezza.com/_iserv/dlfiles/dl.php?ddl=agg-tariffe-dei-premi-inail-2019.pdf"
                   target="_blank" rel="noopener">tariffe dei premi</a>, dove il tasso dipende dalla lavorazione e non
                 dallo stipendio.</p>
-              <p class="nota solo-azienda">Scegliendo &ldquo;aliquota inserita a mano&rdquo;
-                il lavoratore torna al 9,19%: di un&rsquo;aliquota complessiva non si sa
-                quanta CIGS e quanto FIS ci sia dentro, e inventarlo darebbe un netto
-                sbagliato con l&rsquo;aria di essere preciso.</p>
+              <p class="nota solo-azienda">Con l&rsquo;aliquota inserita a mano, i contributi a carico del dipendente vengono calcolati sull&rsquo;aliquota base del 9,19%.</p>
             </div>
           </details>
 
@@ -1841,6 +1886,21 @@
                 <div class="value" id="outAliquota"></div>
                 <div class="sub">solo imposte, in rapporto alla RAL</div>
               </div>
+            </div>
+
+            <!-- Stessa forma del riquadro dell'agevolazione sul lato
+               azienda: compare solo a regime attivo e sta sopra la barra,
+               perche' spiega perche' i numeri sotto sono quelli che sono. -->
+            <div class="sconto" id="bloccoImpatriati" hidden>
+              <div class="sconto-testa">
+                <div>
+                  <div class="sconto-label">Regime applicato</div>
+                  <div class="sconto-nome" id="impatriatiNome"></div>
+                </div>
+                <div class="sconto-cifra" id="impatriatiCifra"></div>
+              </div>
+              <p class="sconto-riga" id="impatriatiConfronto"></p>
+              <p class="sconto-nota" id="impatriatiNota"></p>
             </div>
 
             <div class="blocco">

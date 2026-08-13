@@ -5,8 +5,9 @@
  */
 import { 
   calcolaNetto, calcolaCostoAzienda, aliquotaDatore, risolviDatore, 
-  confrontaConMedia, PRESET_DATORE, AGEVOLAZIONI_2026, MEDIE_RETRIBUTIVE, 
-  COMUNI, REGIONI, risolviRegione, risolviComune, PARAMETRI_2026 
+  confrontaConMedia, PRESET_DATORE, AGEVOLAZIONI_2026, MEDIE_RETRIBUTIVE,
+  COMUNI, REGIONI, risolviRegione, risolviComune, PARAMETRI_2026,
+  IMPATRIATI_2026, confrontoImpatriati
 } from './calc/index.js';
 import { SPIEGAZIONI } from './spiegazioni.js';
 
@@ -192,6 +193,32 @@ function mostraAliquote() {
     '<b>' + reg.nome + '</b> ' + descriviEnte(reg) +
     '<br><b>' + com.nome + '</b> ' + descriviEnte(com) +
     (soglia > 0 ? ', esente fino a ' + num0.format(soglia) + ' €' : ', nessuna esenzione');
+}
+
+// -------------------------------------------------------------
+// Regime impatriati
+// -------------------------------------------------------------
+// Un menu solo e non due caselle: il 50% e il 60% sono lo stesso
+// regime a due percentuali diverse, spuntabili insieme non esistono.
+// Il valore vuoto e' il caso normale, cioe' nessuna agevolazione.
+function impatriatiScelto() {
+  const v = $('impatriati').value;
+  return IMPATRIATI_2026.regimi[v] ? v : '';
+}
+
+function mostraImpatriati() {
+  const k = impatriatiScelto();
+  if (!k) {
+    $('impatriatiAttuali').innerHTML =
+      'Nessun regime: imponibile fiscale pieno.';
+    return;
+  }
+  const r = IMPATRIATI_2026.regimi[k];
+  $('impatriatiAttuali').innerHTML =
+    '<b>' + r.breve + '</b> quota esente ' + pctAliq(r.quotaEsente) +
+    " dell'imponibile &nbsp;·&nbsp; tetto " + eur0.format(IMPATRIATI_2026.tettoReddito) +
+    ' l\'anno &nbsp;·&nbsp; ' + IMPATRIATI_2026.anni + ' periodi d\'imposta' +
+    ' &nbsp;·&nbsp; <span class="nota-riga">contributi INPS pieni, costo azienda invariato</span>';
 }
 
 // -------------------------------------------------------------
@@ -484,6 +511,10 @@ $('ral').addEventListener('keydown', (e) => {
 ['mensilita', 'coniuge', 'figli', 'altri', 'valutaPizze', 'qualifica', 'settore'].forEach((id) => {
   $(id).addEventListener('change', () => { if (calcolato) aggiorna(); });
 });
+$('impatriati').addEventListener('change', () => {
+  mostraImpatriati();
+  if (calcolato) aggiorna();
+});
 ['comune', 'regione', 'comuneTipo', 'regioneTipo'].forEach((id) => {
   $(id).addEventListener('change', () => {
     sincronizzaResidenza();
@@ -518,6 +549,7 @@ Object.keys(AGEVOLAZIONI_CAMPI).forEach((id) => {
 sincronizzaResidenza();
 sincronizzaDatore(false);
 sincronizzaAgevolazioni();
+mostraImpatriati();
 
 // -------------------------------------------------------------
 // Render
@@ -540,17 +572,24 @@ function aggiorna() {
   // di quel numero non si sa come sia composto.
   const scelta = datoreScelto();
 
-  const r = calcolaNetto(ral, mensilita, Object.assign({
+  const opzioni = Object.assign({
     coniuge: $('coniuge').checked,
     figli: Number($('figli').value),
     altriFamiliari: Number($('altri').value),
+    impatriati: impatriatiScelto(),
     preset: scelta.preset,
     // conMassimale resta al default: iscritto INPS dal 1996 in poi.
-  }, residenzaScelta()));
+  }, residenzaScelta());
+
+  const r = calcolaNetto(ral, mensilita, opzioni);
+  // Il secondo giro serve solo a dire quanto vale il regime: stesse
+  // opzioni, regime spento. Senza regime attivo non si calcola niente.
+  const imp = confrontoImpatriati(r, opzioni);
 
   const a = calcolaCostoAzienda(ral, scelta);
 
   intestazione(r, mensilita);
+  guadagnoImpatriati(r, imp, mensilita);
   confronto(r);
   barra(r);
   dettaglio(r, mensilita);
@@ -590,6 +629,51 @@ function intestazione(r, mensilita) {
   // rapportate alla RAL, la stessa base del carico effettivo qui sopra.
   const imposte = r.irpefNetta + r.addizionaleRegionale + r.addizionaleComunale;
   $('outAliquota').textContent = pct((imposte / r.ral) * 100);
+}
+
+// Quanto vale il regime impatriati, nella stessa forma del riquadro
+// dell'agevolazione sul lato azienda: cifra grande, i due netti a
+// confronto, la durata sotto. Li' e' un costo che scende, qui e' un
+// netto che sale, per questo il segno e' piu' e non meno.
+function guadagnoImpatriati(r, imp, mensilita) {
+  if (!imp) {
+    $('bloccoImpatriati').hidden = true;
+    return;
+  }
+  $('bloccoImpatriati').hidden = false;
+
+  $('impatriatiNome').textContent = r.impatriati.regime.nome;
+  $('impatriatiConfronto').innerHTML =
+    'Netto annuo <span class="barrato">' + eur0.format(imp.nettoSenza) + '</span> ' +
+    '<b>' + eur0.format(imp.nettoCon) + '</b>';
+
+  // A redditi bassi il regime puo' togliere piu' di quanto dia: il
+  // trattamento integrativo vuole che l'imposta lorda superi la
+  // detrazione da lavoro, e abbattendo il reddito quella condizione
+  // salta. Il riquadro deve dirlo, non mostrare un "+ -705 €".
+  if (imp.guadagnoAnnuo <= 0.5) {
+    $('bloccoImpatriati').classList.add('in-perdita');
+    $('impatriatiCifra').textContent =
+      imp.guadagnoAnnuo < -0.5 ? '− ' + eur0.format(-imp.guadagnoAnnuo) : eur0.format(0);
+    $('impatriatiNota').innerHTML = imp.guadagnoAnnuo < -0.5
+      ? 'A questa RAL il regime <b>riduce lo stipendio netto</b> anziché aumentarlo. ' +
+        'Abbattendo l\'imponibile fiscale, l\'IRPEF lorda diventa troppo bassa per coprire la detrazione da lavoro: ' +
+        'si perde così il <b>Trattamento Integrativo di 1.200 €/anno</b> (ex Bonus Renzi), il cui valore supera il piccolo risparmio IRPEF ottenuto. ' +
+        'Poiché l\'agevolazione è facoltativa, <b>in questa fascia conviene non applicarla</b>.'
+      : 'A questa RAL il regime <b>non produce alcun beneficio sul netto</b>: ' +
+        'le detrazioni da lavoro dipendente azzerano già l\'IRPEF dovuta, quindi l\'abbattimento dell\'imponibile non genera un risparmio fiscale effettivo.';
+    return;
+  }
+  $('bloccoImpatriati').classList.remove('in-perdita');
+  $('impatriatiCifra').textContent = '+ ' + eur0.format(imp.guadagnoAnnuo);
+
+  $('impatriatiNota').innerHTML =
+    '<b>+' + eur2.format(imp.guadagnoMese) + ' al mese</b> su ' + mensilita +
+    ' mensilità. Imposte da ' + eur0.format(imp.imposteSenza) + ' a ' +
+    eur0.format(imp.imposteCon) + ', mentre i contributi INPS restano gli stessi. ' +
+    'Il regime dura <b>' + IMPATRIATI_2026.anni + ' periodi d\'imposta</b>: ' +
+    'a RAL invariata vale ' + eur0.format(imp.guadagnoDurata) + ' in tutto. ' +
+    'Per l\'azienda non cambia nulla, il costo del lavoro resta quello di prima.';
 }
 
 // -------------------------------------------------------------
@@ -676,7 +760,7 @@ function dettaglio(r, mensilita) {
   const addizionali = r.addizionaleRegionale + r.addizionaleComunale;
   const aggiuntive = r.bonusCuneo + r.trattamentoIntegrativo;
 
-  t.sezione("Dal lordo all'imponibile", eur2.format(r.imponibile));
+  t.sezione("Dal lordo all'imponibile", eur2.format(r.imponibileIrpef));
   t.riga('Retribuzione annua lorda', eur2.format(r.ral), '', '', 'ral');
   if (r.massimaleApplicato) {
     t.riga('Base contributiva', eur2.format(r.baseContributiva), '',
@@ -695,6 +779,23 @@ function dettaglio(r, mensilita) {
            '(' + pctAliq(v.aliquota) + ' della RAL)', v.info);
   });
   t.riga('Imponibile fiscale', eur2.format(r.imponibile), '', '', 'imponibile');
+
+  // Il regime impatriati non e' una detrazione: toglie reddito prima
+  // dell'imposta. Sta qui e non nel blocco IRPEF perche' da qui in poi
+  // tutto il calcolo, addizionali comprese, guarda il numero ridotto.
+  if (r.impatriati) {
+    const imp = r.impatriati;
+    let nota = '(' + pctAliq(imp.quotaEsente) + ' non concorre a formare il reddito)';
+    if (imp.tettoApplicato) {
+      nota = '(' + pctAliq(imp.quotaEsente) + ' dei primi ' +
+             num0.format(IMPATRIATI_2026.tettoReddito) + ' €: la parte oltre il tetto resta tassata)';
+    }
+    t.riga('Quota esente regime impatriati',
+           '− ' + eur2.format(r.esenzioneImpatriati), 'pos', nota, 'impatriati');
+    t.riga('Imponibile IRPEF agevolato', eur2.format(r.imponibileIrpef), '',
+           '(è questo il reddito su cui si calcolano imposta, detrazioni e addizionali)',
+           'imponibileIrpef');
+  }
 
   t.sezione('IRPEF', '− ' + eur2.format(r.irpefNetta), 'neg');
   t.riga('IRPEF lorda (scaglioni 23 / 33 / 43%)', eur2.format(r.irpefLorda), '', '', 'irpefLorda');
@@ -734,9 +835,9 @@ function dettaglio(r, mensilita) {
   // scalino secco, che qui va detto invece che subito.
   const soglia = r.comune.esenzioneFino || 0;
   let notaComunale = '(' + descriviEnte(r.comune) + ')';
-  if (soglia > 0 && r.imponibile <= soglia) {
+  if (soglia > 0 && r.imponibileIrpef <= soglia) {
     notaComunale += ' — esente fino a ' + num0.format(soglia) + ' € di imponibile';
-  } else if (soglia > 0 && r.imponibile > soglia && r.imponibile < soglia * 1.02) {
+  } else if (soglia > 0 && r.imponibileIrpef > soglia && r.imponibileIrpef < soglia * 1.02) {
     notaComunale += ' — soglia appena superata: sotto ' + num0.format(soglia) +
                     ' € si paga zero, non si paga sull\'eccedenza';
   }

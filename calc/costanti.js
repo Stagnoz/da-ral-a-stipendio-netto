@@ -242,6 +242,41 @@ export const AGEVOLAZIONI_2026 = {
   },
 };
 
+// ===============================================================
+// REGIME IMPATRIATI ("rientro dei cervelli")
+// ===============================================================
+// Non è un'agevolazione contributiva come quelle qui sopra: non tocca
+// i contributi né il costo aziendale. Abbatte l'imponibile fiscale del
+// lavoratore, quindi entra nel calcolo del netto e non in quello del
+// datore. Il datore però lo applica direttamente in busta paga, su
+// richiesta scritta del dipendente.
+export const IMPATRIATI_2026 = {
+  // L'abbattimento si ferma qui: la parte di reddito oltre i 600.000 €
+  // resta tassata per intero.
+  tettoReddito: 600000,
+  anni: 5,
+  norma: 'art. 5 D.Lgs. 209/2023',
+  adempimento: 'richiesta scritta al datore di lavoro, che applica la riduzione in busta paga; ' +
+    'in mancanza, si recupera in dichiarazione.',
+  regimi: {
+    base: {
+      nome: 'Impatriati — quota esente 50%',
+      breve: 'Impatriati 50%',
+      quotaEsente: 0.5,
+      requisito: 'residenza estera nei 3 periodi d\'imposta precedenti (6 o 7 se si rientra ' +
+        'presso lo stesso datore o gruppo), impegno a restare fiscalmente in Italia 4 anni, ' +
+        'requisiti di elevata qualificazione o specializzazione',
+    },
+    figli: {
+      nome: 'Impatriati con figlio minore — quota esente 60%',
+      breve: 'Impatriati 60%',
+      quotaEsente: 0.6,
+      requisito: 'gli stessi requisiti del 50%, più il trasferimento con un figlio minore ' +
+        'residente in Italia, oppure la nascita o adozione di un minore durante il periodo agevolato',
+    },
+  },
+};
+
 export const FONTE_MEDIE = 'JP Salary Outlook 2026';
 
 export const MEDIE_RETRIBUTIVE = {

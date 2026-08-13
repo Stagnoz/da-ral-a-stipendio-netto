@@ -1,4 +1,40 @@
 import { rapportoTroncato, imposteProgressive } from './utils.js';
+import { IMPATRIATI_2026 } from './costanti.js';
+
+// ===============================================================
+// REGIME IMPATRIATI (art. 5 D.Lgs. 209/2023)
+// ===============================================================
+
+/**
+ * Calcola la quota di reddito che il regime impatriati lascia fuori
+ * dalla tassazione. Non è una detrazione: è una parte di imponibile
+ * che non concorre a formare il reddito, quindi sparisce prima che
+ * si calcolino IRPEF, detrazioni e addizionali.
+ *
+ * I contributi INPS restano pieni: l'agevolazione è solo fiscale.
+ *
+ * @param {number} imponibile - Imponibile fiscale (RAL meno contributi)
+ * @param {string} chiave - 'base' (50%) o 'figli' (60%); qualsiasi altro valore = nessun regime
+ * @returns {object|null} Dettaglio dell'abbattimento, oppure null se il regime non si applica
+ */
+export function esenzioneImpatriati(imponibile, chiave) {
+  const regime = IMPATRIATI_2026.regimi[chiave];
+  if (!regime || imponibile <= 0) return null;
+
+  // Sopra il tetto l'eccedenza resta tassata per intero.
+  const redditoAgevolato = Math.min(imponibile, IMPATRIATI_2026.tettoReddito);
+  const eccedenza = Math.max(0, imponibile - IMPATRIATI_2026.tettoReddito);
+
+  return {
+    chiave,
+    regime,
+    quotaEsente: regime.quotaEsente,
+    redditoAgevolato,
+    eccedenzaOltreTetto: eccedenza,
+    esenzione: redditoAgevolato * regime.quotaEsente,
+    tettoApplicato: eccedenza > 0,
+  };
+}
 
 // ===============================================================
 // DETRAZIONI FISCALI (Sconti sulle tasse)

@@ -16,6 +16,7 @@ Il calcolatore esegue una simulazione completa del cuneo fiscale e contributivo 
    - **Somme aggiuntive / Bonus cuneo**: calcolo del bonus erogato in busta paga per le fasce di reddito aventi diritto e trattamento integrativo.
    - **Addizionali locali**: calcolo delle addizionali regionali e comunali basate sulla residenza selezionata, tenendo conto di aliquote a scaglioni, aliquote uniche e soglie di esenzione.
    - **Detrazioni per carichi di famiglia**: sconti IRPEF applicabili in presenza di coniuge a carico, figli o altri familiari conviventi.
+   - **Regime impatriati (rientro dei cervelli)**: abbattimento del 50% dell'imponibile fiscale, che sale al 60% in presenza di un figlio minore, entro il tetto di 600.000 € di reddito annuo. La quota agevolata non concorre a formare il reddito, quindi riduce IRPEF, detrazioni e addizionali locali; i contributi previdenziali restano invece dovuti sull'intera RAL. Fanno eccezione il taglio del cuneo e il trattamento integrativo, che per circolare guardano il reddito comprensivo della quota esente: a redditi bassi il regime può quindi far perdere il trattamento integrativo e abbassare il netto, e il calcolatore lo segnala.
 
 2. **Lato azienda (Costo Totale del Lavoro)**:
    - **Contributi a carico del datore**: contributi previdenziali ed assistenziali INPS calcolati sul lordo in base all'inquadramento settoriale (Industria fino a 15 dipendenti, Industria oltre 50 dipendenti, Terziario, o aliquota personalizzata).
@@ -35,6 +36,7 @@ Il calcolatore esegue una simulazione completa del cuneo fiscale e contributivo 
 - **Personalizzazione parametri**:
   - Selezione della regione e del comune di residenza con calcolo automatico delle addizionali locali.
   - Configurazione dei familiari a carico (coniuge, figli, altri familiari).
+  - Selezione del regime impatriati (quota esente al 50% o al 60% con figlio minore), con riquadro che mostra quanto vale il regime in euro: netto con e senza, guadagno mensile e sull'intero quinquennio.
   - Selezione dell'inquadramento aziendale e del tasso INAIL.
   - Selezione delle agevolazioni contributive applicabili al datore di lavoro.
 - **Dettaglio numerico voce per voce**:

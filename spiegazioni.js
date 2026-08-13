@@ -64,6 +64,24 @@ export const SPIEGAZIONI = {
     norma: 'art. 51 comma 2 lett. a) TUIR',
   },
 
+  impatriati: {
+    titolo: 'Regime impatriati (rientro dei cervelli)',
+    testo: 'Consente a chi trasferisce la residenza fiscale in Italia dall\'estero di pagare le tasse solo sul 50% del reddito (o sul 40% in presenza di un figlio minore). ' +
+      'Essendo un\'esenzione dal reddito, riduce sia l\'IRPEF che le addizionali regionali e comunali. ' +
+      'L\'agevolazione vale per 5 anni su un massimo di 600.000 € di reddito annuo. ' +
+      'I contributi INPS restano calcolati sull\'intera RAL e non c\'è alcun impatto sul costo aziendale. ' +
+      'Attenzione ai redditi bassi: abbattendo l\'imposta lorda si può perdere il trattamento integrativo, che vale 1.200 €, e in quel caso il regime fa scendere il netto invece di alzarlo.',
+    norma: 'art. 5 D.Lgs. 209/2023 (trasferimenti dal 2024)',
+  },
+
+  imponibileIrpef: {
+    titolo: 'Imponibile IRPEF agevolato',
+    testo: 'È il reddito effettivo su cui vengono calcolate IRPEF, detrazioni e addizionali locali dopo l\'abbattimento del regime impatriati. ' +
+      'L\'imponibile INPS rimane invece quello pieno. ' +
+      'Fanno eccezione il taglio del cuneo e il trattamento integrativo: per quelli il reddito di riferimento è quello comprensivo della quota esente, quindi il regime non fa scendere nessuno in una fascia più favorevole.',
+    norma: 'art. 5 comma 1 D.Lgs. 209/2023 · circolari AdE 4/E del 2025 e 29/E del 2020',
+  },
+
   irpefLorda: {
     titolo: 'IRPEF lorda',
     testo: 'L\'imposta sul reddito, calcolata per scaglioni: 23% fino a 28.000 €, 33% da 28.000 a 50.000, 43% oltre. ' +
