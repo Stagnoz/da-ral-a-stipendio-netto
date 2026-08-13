@@ -184,47 +184,114 @@
     }
 
     /* Schermi bassi: 1366x768 con la barra del browser, o un portatile a
-     scala 150%. Le misure sopra bastano fino a poco sotto i 700 pixel di
-     viewport; sotto, il pannello tornerebbe a scorrere al primo sguardo.
-     Qui si stringe quello che si puo' stringere senza togliere campi:
-     l'utente perde aria, non informazione, e la perde solo dove non ce
-     n'e'. Sotto i 1101 di larghezza le colonne sono impilate e la prima
-     schermata non ci sta comunque, quindi la regola non si applica. */
-    @media (min-width: 1101px) and (max-height: 700px) {
-      body {
-        padding-top: 12px;
-      }
+     scala 150%. Quanto ci stia in una schermata non lo decide un numero
+     scritto qui: dipende da monitor, zoom, barre del browser e da quale
+     dei due tab e' attivo. Lo misura app.js, che mette data-compatto sul
+     body e alza il livello finche' il pannello entra. Si stringe quello
+     che si puo' stringere senza togliere campi: l'utente perde aria, non
+     informazione. Nessuno dei due livelli nasconde testo.
+     Sotto i 1101 di larghezza le colonne sono impilate, il pannello non
+     ha piu' tetto d'altezza e la misura non scatta mai. */
+    body[data-compatto] {
+      padding-top: 12px;
+    }
 
-      .testata {
-        margin-bottom: 8px;
-      }
+    body[data-compatto] .testata {
+      margin-bottom: 8px;
+    }
 
-      .testata h1 {
-        font-size: 1.35rem;
-      }
+    body[data-compatto] .testata h1 {
+      font-size: 1.35rem;
+    }
 
-      .sottotitolo {
-        margin-top: 3px;
-        font-size: 0.83rem;
-      }
+    body[data-compatto] .sottotitolo {
+      margin-top: 3px;
+      font-size: 0.83rem;
+    }
 
-      .sez>summary {
-        padding: 4px 0;
-      }
+    body[data-compatto] .sez>summary {
+      padding: 4px 0;
+    }
 
-      .sez .facolt {
-        font-size: 0.73rem;
-      }
+    body[data-compatto] .sez .facolt {
+      font-size: 0.73rem;
+    }
 
-      .pannello {
-        padding: 8px 12px;
-      }
+    body[data-compatto] .pannello {
+      padding: 8px 12px;
+    }
 
-      button[type=submit] {
-        padding: 9px;
-        margin-top: 8px;
-        margin-bottom: 10px;
-      }
+    body[data-compatto] button[type=submit] {
+      padding: 9px;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* Livello 2: l'aria e' finita, si stringono i campi. Le caselle
+     restano sopra i 30 pixel d'altezza, che col mouse bastano. */
+    body[data-compatto="2"] .tabs button {
+      padding: 4px;
+    }
+
+    body[data-compatto="2"] .tabs button .tab-sub {
+      margin-top: 0;
+    }
+
+    body[data-compatto="2"] .hint-tabs {
+      margin-bottom: 6px;
+    }
+
+    body[data-compatto="2"] label {
+      margin-bottom: 2px;
+    }
+
+    body[data-compatto="2"] input:not([type=checkbox]),
+    body[data-compatto="2"] select {
+      padding: 7px 10px;
+    }
+
+    body[data-compatto="2"] #ral {
+      font-size: 1.12rem;
+      padding: 7px 11px;
+    }
+
+    body[data-compatto="2"] .sez>summary {
+      padding: 2px 0;
+    }
+
+    body[data-compatto="2"] .sez .facolt {
+      font-size: 0.71rem;
+      line-height: 1.18;
+    }
+
+    body[data-compatto="2"] button[type=submit] {
+      padding: 7px;
+      margin-top: 6px;
+      margin-bottom: 8px;
+    }
+
+    /* Livello 3: schermi davvero bassi (un 1080p a scala 150% con due
+     barre aperte). Qui i campi sono gia' stretti quanto possono, e
+     l'unica riga che si puo' togliere e' la frase sotto i tab: e' un
+     invito a cliccare, e i due tab sopra dicono gia' cosa fanno, con
+     tanto di sottotitolo. Le didascalie delle sezioni, che invece
+     spiegano cosa c'e' dentro, restano tutte. */
+    body[data-compatto="3"] .hint-tabs {
+      display: none;
+    }
+
+    body[data-compatto="3"] .sez>summary {
+      padding: 1px 0;
+    }
+
+    body[data-compatto="3"] .sez .facolt {
+      line-height: 1.12;
+    }
+
+    body[data-compatto="3"] button[type=submit] {
+      padding: 6px;
+      margin-top: 5px;
+      margin-bottom: 6px;
     }
 
     /* L'attributo hidden non basta su .row, che ha display:flex dal CSS:

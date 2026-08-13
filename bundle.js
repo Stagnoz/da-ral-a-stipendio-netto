@@ -825,9 +825,26 @@
     document.body.dataset.vista = vista;
     $("tabDipendente").setAttribute("aria-selected", String(vista === "dipendente"));
     $("tabAzienda").setAttribute("aria-selected", String(vista === "azienda"));
+    adattaPannello();
   }
   $("tabDipendente").addEventListener("click", () => cambiaVista("dipendente"));
   $("tabAzienda").addEventListener("click", () => cambiaVista("azienda"));
+  var LIVELLI_COMPATTO = ["1", "2", "3"];
+  function adattaPannello() {
+    const pannello = document.querySelector(".pannello");
+    if (!pannello || pannello.querySelector("details[open]")) return;
+    delete document.body.dataset.compatto;
+    for (const livello of LIVELLI_COMPATTO) {
+      if (pannello.scrollHeight - pannello.clientHeight <= 1) return;
+      document.body.dataset.compatto = livello;
+    }
+  }
+  addEventListener("resize", adattaPannello);
+  document.querySelectorAll(".pannello details.sez").forEach((d) => {
+    d.addEventListener("toggle", () => {
+      if (!d.open) adattaPannello();
+    });
+  });
   $("comune").innerHTML = Object.entries(COMUNI).map(([k, c]) => `<option value="${k}">${c.nome}</option>`).join("") + `<option value="${ALTRO}">Altro comune\u2026</option>`;
   $("regione").innerHTML = Object.entries(REGIONI).map(([k, r]) => `<option value="${k}">${r.nome}</option>`).join("") + `<option value="${ALTRO}">Altra regione\u2026</option>`;
   $("comune").value = "milano";
@@ -1073,6 +1090,7 @@
     calcolato = true;
     document.body.dataset.calcolato = "";
     aggiorna();
+    adattaPannello();
     const colonna = document.querySelector(".colonna-risultati");
     if (colonna && $("risultati").style.display !== "none") {
       colonna.classList.remove("risultati-updated");
@@ -1153,6 +1171,7 @@
   sincronizzaDatore(false);
   sincronizzaAgevolazioni();
   mostraImpatriati();
+  adattaPannello();
   function aggiorna() {
     const ral = valoreRal();
     const mensilita = Number($("mensilita").value);

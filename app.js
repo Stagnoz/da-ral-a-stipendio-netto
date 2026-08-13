@@ -77,9 +77,46 @@ function cambiaVista(vista) {
   document.body.dataset.vista = vista;
   $('tabDipendente').setAttribute('aria-selected', String(vista === 'dipendente'));
   $('tabAzienda').setAttribute('aria-selected', String(vista === 'azienda'));
+  adattaPannello();
 }
 $('tabDipendente').addEventListener('click', () => cambiaVista('dipendente'));
 $('tabAzienda').addEventListener('click', () => cambiaVista('azienda'));
+
+// -------------------------------------------------------------
+// A sezioni chiuse il pannello deve stare in una schermata sola. Quanta
+// altezza ci sia lo sanno solo monitor, zoom e barre del browser, quindi
+// si misura invece di scriverlo nel CSS: si prova senza stringere niente,
+// e finche' il contenuto sborda si sale di livello. Il livello 1 toglie
+// aria, il 2 stringe i campi, il 3 toglie l'invito sotto i tab. I campi
+// e le didascalie delle sezioni non spariscono a nessun livello.
+// Con una sezione aperta non si tocca niente: li' scorrere e' previsto,
+// e comprimere tutta la pagina per far entrare un blocco lungo darebbe
+// una pagina che si stringe e si allarga mentre la si usa.
+// -------------------------------------------------------------
+const LIVELLI_COMPATTO = ['1', '2', '3'];
+function adattaPannello() {
+  const pannello = document.querySelector('.pannello');
+  if (!pannello || pannello.querySelector('details[open]')) return;
+  delete document.body.dataset.compatto;
+  for (const livello of LIVELLI_COMPATTO) {
+    // Leggere scrollHeight forza il ricalcolo: il livello precedente e'
+    // gia' applicato quando si rimisura. Un pixel di tolleranza per gli
+    // arrotondamenti dello zoom, che da soli farebbero scattare il
+    // livello successivo senza motivo.
+    if (pannello.scrollHeight - pannello.clientHeight <= 1) return;
+    document.body.dataset.compatto = livello;
+  }
+}
+
+// Il pannello non e' vincolato in altezza a colonne impilate, quindi
+// sotto i 1101px la misura non fa mai scattare niente: nessun controllo
+// di larghezza da tenere allineato al CSS.
+addEventListener('resize', adattaPannello);
+document.querySelectorAll('.pannello details.sez').forEach((d) => {
+  // Alla chiusura dell'ultima sezione aperta si rimisura: il livello che
+  // serviva col blocco aperto puo' non servire piu'.
+  d.addEventListener('toggle', () => { if (!d.open) adattaPannello(); });
+});
 
 // -------------------------------------------------------------
 // Menu costruiti dalle tabelle di calc.js: i dati stanno in un posto
@@ -477,6 +514,9 @@ $('form').addEventListener('submit', (e) => {
   calcolato = true;
   document.body.dataset.calcolato = '';
   aggiorna();
+  // Il vincolo d'altezza sulla riga cade dopo il calcolo: il pannello
+  // puo' tornare a stare in una schermata senza essere stretto.
+  adattaPannello();
 
   const colonna = document.querySelector('.colonna-risultati');
   if (colonna && $('risultati').style.display !== 'none') {
@@ -550,6 +590,9 @@ sincronizzaResidenza();
 sincronizzaDatore(false);
 sincronizzaAgevolazioni();
 mostraImpatriati();
+// Dopo i menu, non prima: le voci decidono la larghezza dei campi e
+// quindi quante righe occupano le didascalie delle sezioni.
+adattaPannello();
 
 // -------------------------------------------------------------
 // Render
