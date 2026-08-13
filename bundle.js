@@ -1,6 +1,6 @@
 (() => {
   // calc/costanti.js
-  var PARAMETRI_20262 = {
+  var PARAMETRI_2026 = {
     // Quota IVS (Invalidità, Vecchiaia, Superstiti) a carico del lavoratore dipendente (settore privato).
     // Rappresenta la percentuale di stipendio lordo che va all'INPS per la pensione.
     aliquotaInps: 0.0919,
@@ -259,11 +259,11 @@
     if (typeof comune === "string" && COMUNI[comune]) {
       return REGIONI[COMUNI[comune].regione];
     }
-    return REGIONI[PARAMETRI_20262.regioneDefault];
+    return REGIONI[PARAMETRI_2026.regioneDefault];
   }
   function risolviComune(scelta) {
     if (scelta && typeof scelta === "object") return scelta;
-    return COMUNI[scelta] || COMUNI[PARAMETRI_20262.comuneDefault];
+    return COMUNI[scelta] || COMUNI[PARAMETRI_2026.comuneDefault];
   }
   function risolviDatore(scelta) {
     if (scelta && typeof scelta === "object") return scelta;
@@ -347,7 +347,7 @@
 
   // calc/calcolo-dipendente.js
   function contributiDipendente(ral, conMassimale, vociLavoratore) {
-    const p = PARAMETRI_20262;
+    const p = PARAMETRI_2026;
     const baseContributivaPensionistica = conMassimale ? Math.min(ral, p.massimale) : ral;
     const ivs = baseContributivaPensionistica * p.aliquotaInps;
     const eccedenzaFascia = Math.max(0, baseContributivaPensionistica - p.primaFascia);
@@ -370,7 +370,7 @@
     };
   }
   function calcolaNetto(ral, mensilita, opzioni = {}) {
-    const p = PARAMETRI_20262;
+    const p = PARAMETRI_2026;
     const conMassimale = opzioni.conMassimale !== false;
     const datore = risolviDatore(opzioni.preset);
     const contributi = contributiDipendente(ral, conMassimale, datore.vociLavoratore);
@@ -468,7 +468,7 @@
     };
   }
   function calcolaCostoAzienda(ral, opzioni = {}) {
-    const p = PARAMETRI_20262;
+    const p = PARAMETRI_2026;
     const a = PARAMETRI_AZIENDA_2026;
     const preset = risolviDatore(opzioni.preset);
     const conMassimale = opzioni.conMassimale !== false;
@@ -1066,7 +1066,7 @@
   function aggiorna() {
     const ral = valoreRal();
     const mensilita = Number($("mensilita").value);
-    if (!ral || ral < 1e3) {
+    if (!ral || ral < 1e3 || ral > 9999999999) {
       $("errore").style.display = "block";
       $("risultati").style.display = "none";
       $("attesa").hidden = false;

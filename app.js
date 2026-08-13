@@ -6,7 +6,7 @@
 import { 
   calcolaNetto, calcolaCostoAzienda, aliquotaDatore, risolviDatore, 
   confrontaConMedia, PRESET_DATORE, AGEVOLAZIONI_2026, MEDIE_RETRIBUTIVE, 
-  COMUNI, REGIONI, risolviRegione, risolviComune 
+  COMUNI, REGIONI, risolviRegione, risolviComune, PARAMETRI_2026 
 } from './calc/index.js';
 import { SPIEGAZIONI } from './spiegazioni.js';
 
@@ -526,7 +526,7 @@ function aggiorna() {
   const ral = valoreRal();
   const mensilita = Number($('mensilita').value);
 
-  if (!ral || ral < 1000) {
+  if (!ral || ral < 1000 || ral > 9999999999) {
     $('errore').style.display = 'block';
     $('risultati').style.display = 'none';
     $('attesa').hidden = false;
