@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fonti e riferimenti normativi — calcolatore RAL/netto 2026</title>
+<style>
+  /* Stessi token della pagina del calcolatore per coerenza visiva. */
+  :root {
+    --ink: #1a1a1a;
+    --muted: #5e6b73;
+    --line: #eaedf0;
+    --line-strong: #d1d9e0;
+    --bg: #f9fbfa;
+    --panel: #ffffff;
+    --red: #cc1f12;
+    --green: #0a7a3d;
+    --slate: #405464;
+    --radius: 8px;
+    --radius-box: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg); 
+    color: var(--ink);
+    line-height: 1.6; 
+    padding: 32px 24px 80px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  .torna {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem; 
+    font-weight: 600;
+    color: var(--muted); 
+    text-decoration: none; 
+    margin-bottom: 24px;
+    transition: color 0.2s ease;
+  }
+  .torna:hover { color: var(--ink); }
+
+  h1 { 
+    font-size: 2rem; 
+    letter-spacing: -0.02em; 
+    line-height: 1.2; 
+    font-weight: 800; 
+    margin-bottom: 8px;
+  }
+  .sottotitolo { 
+    color: var(--muted); 
+    font-size: 1rem; 
+    max-width: 80ch; 
+    margin-bottom: 32px;
+  }
+
+  h2 {
+    font-size: 1.1rem; 
+    letter-spacing: -0.01em;
+    font-weight: 700; 
+    margin: 48px 0 16px; 
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--line-strong);
+    color: var(--slate);
+  }
+  
+  h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 12px; }
+  p { font-size: 0.95rem; max-width: 85ch; color: #333; }
+  p + p { margin-top: 12px; }
+  .intro { color: var(--muted); margin-bottom: 16px; font-size: 0.95rem; }
+
+  a { color: #0056b3; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: #003d82; }
+
+  .tabella { 
+    overflow-x: auto; 
+    background: var(--panel);
+    border-radius: var(--radius-box);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid var(--line);
+    margin-top: 16px;
+  }
+  
+  table {
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 0.9rem;
+    min-width: 720px; 
+  }
+  
+  th {
+    text-align: left; 
+    font-size: 0.75rem; 
+    text-transform: uppercase;
+    letter-spacing: 0.05em; 
+    color: var(--muted); 
+    font-weight: 700;
+    padding: 16px; 
+    border-bottom: 2px solid var(--line);
+    background-color: #f4f6f8;
+  }
+  
+  td {
+    padding: 16px; 
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    color: #444;
+  }
+  tr:last-child td { border-bottom: none; }
+  
+  td:first-child { font-weight: 600; color: var(--ink); width: 20%; }
+  .num { font-variant-numeric: tabular-nums; }
+  table.compatta td:first-child { white-space: normal; }
+
+  /* Etichette di affidabilità della fonte */
+  .tag {
+    display: inline-flex; 
+    align-items: center;
+    font-size: 0.7rem; 
+    font-weight: 700;
+    text-transform: uppercase; 
+    letter-spacing: 0.05em;
+    padding: 4px 8px; 
+    border-radius: 12px; 
+    white-space: nowrap;
+    margin-bottom: 8px;
+    margin-right: 8px;
+  }
+  .t-norma { background: #e3e8ee; color: #1f2937; }
+  .t-ente { background: #dcfce7; color: #166534; }
+  .t-sec { background: #fee2e2; color: #991b1b; }
+
+  .nota {
+    font-size: 0.85rem; 
+    color: var(--muted); 
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-left: 4px solid var(--line-strong);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .nota b { color: var(--ink); }
+
+  .box {
+    background: var(--panel); 
+    border: 1px solid var(--line);
+    border-radius: var(--radius-box); 
+    padding: 24px; 
+    margin: 24px 0 40px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+
+  ul { margin: 12px 0 0 24px; font-size: 0.95rem; color: #333; }
+  li { padding: 6px 0; }
+  
+  ul.link { list-style: none; margin-left: 0; }
+  ul.link li { 
+    padding: 16px; 
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    background: var(--panel);
+  }
+  ul.link .ente {
+    display: block; 
+    font-size: 0.75rem; 
+    text-transform: uppercase;
+    letter-spacing: 0.05em; 
+    color: var(--slate); 
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 768px) {
+    body { padding: 20px 16px 60px; }
+    h1 { font-size: 1.5rem; }
+    .box { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="torna" href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Torna al calcolatore
+  </a>
+
+  <h1>Fonti e Riferimenti Normativi</h1>
+  <p class="sottotitolo">
+    Questa pagina raccoglie tutti i riferimenti normativi e le fonti ufficiali utilizzati dal motore di calcolo. 
+    L'analisi fa riferimento all'anno fiscale 2026, con fonti consultate ed elaborate ad agosto 2026.
+  </p>
+
+  <div class="box" style="border-left: 4px solid var(--ink); margin-bottom: 24px;">
+    <p style="margin:0; font-size: 0.88rem; line-height: 1.5;">
+      <b>Disclaimer sulle variazioni normative:</b> le disposizioni legislative, le aliquote fiscali e i massimali contributivi sono soggetti a modifiche e aggiornamenti di anno in anno. Si raccomanda pertanto di ricontrollare sempre i dati alla fonte per verificare l'attualità delle normative applicabili.
+    </p>
+  </div>
+
+  <div class="box">
+    <h3>Guida alla lettura delle tabelle</h3>
+    <p>Ogni voce analizzata espone due colonne chiave: <b>Norma</b>, che indica la legge che istituisce la regola fiscale, e <b>Verificato su</b>, che riporta la fonte consultata per estrapolare i valori esatti applicati (poiché aliquote e massimali cambiano di anno in anno tramite circolari e delibere locali).</p>
+    <p>L'affidabilità di ogni dato è classificata tramite tre etichette cromatiche:</p>
+    <ul>
+      <li><span class="tag t-norma">Norma</span> Il dato è stato estratto direttamente dal testo di legge. Rappresenta il livello di affidabilità massimo.</li>
+      <li><span class="tag t-ente">Ente</span> Il dato proviene da una pubblicazione ufficiale dell'ente di competenza (es. INPS, INAIL, Agenzia delle Entrate, MEF o Enti Locali).</li>
+      <li><span class="tag t-sec">Secondaria</span> Il dato è stato raccolto da testate giornalistiche specializzate o studi professionali (che a loro volta citano la fonte primaria).</li>
+    </ul>
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>1 · Contributi previdenziali del lavoratore</h2>
+  <div class="tabella">
+  <table>
+    <thead>
+      <tr><th>Voce</th><th>Valore usato</th><th>Norma</th><th>Verificato su</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Aliquota IVS</td>
+        <td class="num">9,19% della RAL — quota a carico del lavoratore
+        dipendente, settore privato (FPLD)</td>
+        <td>aliquota IVS del Fondo pensioni lavoratori dipendenti, ricognizione
+        annuale nelle circolari INPS sulle aliquote contributive</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.inps.it" target="_blank" rel="noopener">INPS</a>,
+        <a href="https://fiscomania.com/calcolo-contributi-versati/" target="_blank" rel="noopener">Fiscomania</a>.
+        Coincide con il 9,19% della pagina pubblica di Jet HR</td>
+      </tr>
+      <tr>
+        <td>Contributo aggiuntivo 1%</td>
+        <td class="num">sulla parte di retribuzione oltre 56.224 € — prima
+        fascia di retribuzione pensionabile 2026</td>
+        <td>art. 3-<i>ter</i> L. 438/1992; importo annuo dalla circolare INPS
+        n. 6 del 30 gennaio 2026</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.consulentidellavoro.it/home/storico-articoli/19330-contributi-2026-aggiornati-minimali-e-massimali" target="_blank" rel="noopener">Consulenti del Lavoro</a>,
+        <a href="https://www.fiscoetasse.com/normativa-prassi/13549-retribuzioni-minime-e-massimali-contributivi-2026-i-nuovi-importi.html" target="_blank" rel="noopener">FiscoeTasse</a></td>
+      </tr>
+      <tr>
+        <td>Massimale contributivo</td>
+        <td class="num">122.295 €: oltre non si versa più IVS. Vale solo per chi
+        risulta iscritto per la prima volta dal 1° gennaio 1996</td>
+        <td>art. 2 comma 18 L. 335/1995; importo annuo dalla circolare INPS
+        n. 6 del 30 gennaio 2026</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.consulentidellavoro.it/home/storico-articoli/19330-contributi-2026-aggiornati-minimali-e-massimali" target="_blank" rel="noopener">Consulenti del Lavoro</a>,
+        <a href="https://www.ecnews.it/lavoro/news-del-giorno/contributi-inps-2026-stabiliti-minimali-massimali/" target="_blank" rel="noopener">EC News</a></td>
+      </tr>
+      <tr>
+        <td>Quote ripartite<br>CIGS e FIS</td>
+        <td class="num">CIGS 0,30% e FIS 0,27% a carico del lavoratore, oltre al
+        9,19%. La CIGS è dovuta sopra i 15 dipendenti in ogni settore, il FIS da
+        chi non ha la CIGO sopra i 5. In tutto: 9,76% nel terziario sopra i 15,
+        9,49% nell&rsquo;industria sopra i 50, 9,19% sotto le soglie</td>
+        <td>D.Lgs. 148/2015; art. 29 per il riparto del FIS in due terzi al
+        datore e un terzo al lavoratore; soglia CIGS dei 15 dipendenti dalla
+        L. 234/2021</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.lavorofacile.it/news/contributi-2026--la-tabella-delle-aliquote-nettizzate" target="_blank" rel="noopener">Lavorofacile</a>,
+        <a href="https://www.geps.it/aumento-aliquote-contributive-per-il-fondo-di-solidarieta-fis-ammortizzatori-sociali-per-tutti-anche-solo-per-1-dipendente-6043/" target="_blank" rel="noopener">GEPS</a></td>
+      </tr>
+      <tr>
+        <td>Deducibilità</td>
+        <td>i contributi obbligatori si sottraggono dalla RAL per ottenere
+        l&rsquo;imponibile fiscale, l&rsquo;1% aggiuntivo compreso</td>
+        <td>art. 51 comma 2 lett. a) TUIR</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>2 · IRPEF, detrazioni e somme aggiuntive</h2>
+  <div class="tabella">
+  <table>
+    <thead>
+      <tr><th>Voce</th><th>Valore usato</th><th>Norma</th><th>Verificato su</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Scaglioni IRPEF 2026</td>
+        <td class="num">23% fino a 28.000 · 33% da 28.000 a 50.000 · 43% oltre</td>
+        <td>art. 11 TUIR come modificato dalla L. 199/2025 (Bilancio 2026): il
+        secondo scaglione scende dal 35% al 33%</td>
+        <td><span class="tag t-ente">ente</span>
+        <a href="https://www.mef.gov.it/focus/Principali-misure-della-legge-di-bilancio-2026/" target="_blank" rel="noopener">MEF</a>,
+        <a href="https://www.lavoro.gov.it/notizie/pagine/legge-di-bilancio-2026-le-principali-misure-lavoratori-imprese-e-famiglie" target="_blank" rel="noopener">Ministero del Lavoro</a>;
+        <a href="https://www.cafacli.it/it/notizie-fisco/irpef-2026-sconto-di-due-punti-sulla-seconda-aliqu_2328_idnews/" target="_blank" rel="noopener">CAF ACLI</a>,
+        <a href="https://www.ipsoa.it/guide/irpef-calcolo" target="_blank" rel="noopener">Ipsoa</a></td>
+      </tr>
+      <tr>
+        <td>Detrazione lavoro dipendente</td>
+        <td class="num">1.955 € fino a 15.000 · 1.910 + 1.190 × (28.000 − R)/13.000
+        fino a 28.000 · 1.910 × (50.000 − R)/22.000 fino a 50.000</td>
+        <td>art. 13 comma 1 TUIR, importi a regime dopo il D.Lgs. 216/2023 e la
+        L. 207/2024</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo;
+        <a href="https://fiscomania.com/detrazioni-per-redditi-da-lavoro-dipendente/" target="_blank" rel="noopener">Fiscomania</a>,
+        <a href="https://www.informazionefiscale.it/detrazioni-lavoro-dipendente-importo-calcolo" target="_blank" rel="noopener">Informazione Fiscale</a></td>
+      </tr>
+      <tr>
+        <td>Maggiorazione 65 €</td>
+        <td class="num">+65 € di detrazione per redditi tra 25.001 e 35.000</td>
+        <td>art. 13 comma 1.1 TUIR, misura strutturale. Il comma 1-<i>bis</i>,
+        che prevedeva un credito di 960 €, è abrogato dal D.L. 3/2020</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo</td>
+      </tr>
+      <tr>
+        <td>Troncamento del rapporto</td>
+        <td>i rapporti del <i>décalage</i>, se positivi, si assumono nelle prime
+        quattro cifre decimali: troncate, non arrotondate</td>
+        <td>art. 13 comma 6 TUIR, ripreso dall&rsquo;art. 12 comma 4 per i
+        carichi di famiglia</td>
+        <td><span class="tag t-norma">norma</span> testo degli articoli</td>
+      </tr>
+      <tr>
+        <td>Taglio del cuneo</td>
+        <td class="num">fino a 20.000: somma esentasse 7,1% / 5,3% / 4,8% per
+        fascia · 20.000–32.000: detrazione 1.000 € · <i>décalage</i> lineare fino
+        a 40.000</td>
+        <td>art. 1 commi 4–9 L. 207/2024 (Bilancio 2025), misura strutturale</td>
+        <td><span class="tag t-ente">ente</span>
+        <a href="https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.04.CU-2026--benefici-fiscali.html" target="_blank" rel="noopener">INPS — CU 2026</a>;
+        <a href="https://www.fiscoetasse.com/new-rassegna-stampa/3664-cu-2026-il-bonus-per-il-taglio-del-cuneo-fiscale.html" target="_blank" rel="noopener">FiscoeTasse</a></td>
+      </tr>
+      <tr>
+        <td>Trattamento integrativo</td>
+        <td class="num">1.200 € per redditi fino a 15.000, se l&rsquo;imposta
+        lorda supera la detrazione da lavoro dipendente</td>
+        <td>art. 1 D.L. 3/2020, conv. L. 21/2020</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://fiscomania.com/trattamento-integrativo-come-funziona/" target="_blank" rel="noopener">Fiscomania</a>,
+        <a href="https://www.eutekne.info/Sezioni/Art_990688_importo_delle_detrazioni_ridotto_di_75_euro_per_la_spettanza_del.aspx" target="_blank" rel="noopener">Eutekne</a></td>
+      </tr>
+      <tr>
+        <td>Capienza</td>
+        <td>le detrazioni non possono spingere l&rsquo;IRPEF sotto zero: la parte
+        eccedente si perde e non viene rimborsata</td>
+        <td>art. 15 comma 1 e art. 22 TUIR</td>
+        <td><span class="tag t-ente">ente</span>
+        <a href="https://www.agenziaentrate.gov.it/portale/documents/20143/8410823/Circolare+lavoro+dipendente+LB2025+DD+IRPEF+n.+4+del+16+maggio+2025.pdf/36979eaa-9fc5-a4ec-a7aa-136497c53f91" target="_blank" rel="noopener">Agenzia delle Entrate, circolare n. 4 del 16 maggio 2025</a></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>3 · Familiari a carico</h2>
+  <div class="tabella">
+  <table>
+    <thead>
+      <tr><th>Voce</th><th>Valore usato</th><th>Norma</th><th>Verificato su</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Chi è a carico</td>
+        <td class="num">reddito proprio del familiare non superiore a 2.840,51 €,
+        elevato a 4.000 € per i figli fino a 24 anni</td>
+        <td>art. 12 comma 2 TUIR</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://fiscomania.com/familiari-a-carico-limiti-detrazione/" target="_blank" rel="noopener">Fiscomania</a></td>
+      </tr>
+      <tr>
+        <td>Coniuge</td>
+        <td class="num">800 − 110 × R/15.000 fino a 15.000 · 690 € fino a 40.000,
+        con maggiorazioni da 10 a 30 € tra 29.000 e 35.200 ·
+        690 × (80.000 − R)/40.000 fino a 80.000 · zero oltre</td>
+        <td>art. 12 comma 1 lett. a) TUIR — coniuge non legalmente ed
+        effettivamente separato</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.dequo.it/articoli/detrazioni-coniuge-a-carico" target="_blank" rel="noopener">Dequo</a></td>
+      </tr>
+      <tr>
+        <td>Figli</td>
+        <td class="num">950 € per figlio × (95.000 − R)/95.000, solo per figli tra
+        21 e 30 anni o disabili senza limite di età; la soglia sale di 15.000 €
+        per ogni figlio dopo il primo</td>
+        <td>art. 12 comma 1 lett. c) TUIR, riscritto dalla L. 207/2024</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://cafinforma.it/detrazioni-figli-a-carico-2026/" target="_blank" rel="noopener">CAF Informa</a>,
+        <a href="https://fiscomania.com/familiari-a-carico-limiti-detrazione/" target="_blank" rel="noopener">Fiscomania</a></td>
+      </tr>
+      <tr>
+        <td>Ascendenti</td>
+        <td class="num">750 € per familiare × (80.000 − R)/80.000, solo con
+        convivenza stabile</td>
+        <td>art. 12 comma 1 lett. d) TUIR</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://fiscomania.com/familiari-a-carico-limiti-detrazione/" target="_blank" rel="noopener">Fiscomania</a></td>
+      </tr>
+      <tr>
+        <td>Figli sotto i 21 anni</td>
+        <td>nessuna detrazione: al suo posto c&rsquo;è l&rsquo;assegno unico, che
+        l&rsquo;INPS versa a parte e non passa dalla busta paga. Resta fuori dal
+        calcolo</td>
+        <td>D.Lgs. 230/2021, che ha sostituito le detrazioni per i figli minori
+        con l&rsquo;assegno unico e universale</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://fiscomania.com/familiari-a-carico-limiti-detrazione/" target="_blank" rel="noopener">Fiscomania</a></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Le soglie fanno due mestieri diversi e vale la pena tenerle
+  separate: <b>2.840,51 e 4.000 €</b> guardano il reddito del familiare e dicono
+  se è a carico, <b>80.000 e 95.000 €</b> guardano il reddito di chi chiede la
+  detrazione e dicono quanto gliene spetta.</p>
+
+  <!-- =========================================================== -->
+  <h2>4 · Addizionali regionali e comunali</h2>
+  <p class="intro">Le aliquote vengono deliberate annualmente dalle singole amministrazioni locali. La fonte primaria ufficiale è il portale del federalismo fiscale del MEF, suddiviso in 
+  <a href="https://www1.finanze.gov.it/finanze2/dipartimentopolitichefiscali/fiscalitalocale/addregirpef/sceltaregione.htm" target="_blank" rel="noopener">Addizionale Regionale</a> e 
+  <a href="https://www1.finanze.gov.it/finanze2/dipartimentopolitichefiscali/fiscalitalocale/nuova_addcomirpef/sceltaregione.htm" target="_blank" rel="noopener">Addizionale Comunale</a>. 
+  Le aliquote precaricate in questo strumento sono state desunte da compendi di settore che aggregano i dati delle singole delibere locali.</p>
+  <div class="tabella">
+  <table>
+    <thead>
+      <tr><th>Voce</th><th>Valore usato</th><th>Norma</th><th>Verificato su</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Addizionale regionale</td>
+        <td>nove regioni precaricate, per scaglioni tranne il Veneto che ha
+        aliquota unica</td>
+        <td>delibere regionali, pubblicate sul portale MEF</td>
+        <td><span class="tag t-ente">ente</span>
+        <a href="https://www.regione.lombardia.it/bollo-auto-e-tributi-regionali/red-addizionale-regionale-irpef" target="_blank" rel="noopener">Regione Lombardia</a>;
+        <a href="https://centrofiscale.com/addizionali-regionali-comunali-irpef-2026/" target="_blank" rel="noopener">CAF Centro Fiscale</a>,
+        <a href="https://www.calcolonetto.it/guide/regione/toscana/" target="_blank" rel="noopener">CalcoloNetto</a></td>
+      </tr>
+      <tr>
+        <td>Addizionale comunale</td>
+        <td>nove capoluoghi precaricati, con la relativa soglia di esenzione</td>
+        <td>delibere comunali depositate presso il MEF</td>
+        <td><span class="tag t-ente">ente</span>
+        <a href="https://www.comune.milano.it/en/argomenti/tributi/addizionale-comunale-irpef" target="_blank" rel="noopener">Comune di Milano</a>,
+        <a href="https://servizicrm.comune.milano.it/centro-supporto/KA-01737/Esenzioni-addizionale-comunale-IRPEF" target="_blank" rel="noopener">Comune di Milano — esenzioni</a>;
+        schede <a href="https://www.tuttocalcolo.it/addizionale-irpef" target="_blank" rel="noopener">TuttoCalcolo</a></td>
+      </tr>
+      <tr>
+        <td>Soglia, non franchigia</td>
+        <td>sotto la soglia di esenzione non si paga niente; superata, si paga
+        sull&rsquo;intero imponibile e non sull&rsquo;eccedenza</td>
+        <td>art. 1 comma 3-<i>bis</i> D.Lgs. 360/1998</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo</td>
+      </tr>
+      <tr>
+        <td>Base imponibile</td>
+        <td>le addizionali si calcolano sull&rsquo;imponibile fiscale, non sulla
+        RAL, e non sono dovute se l&rsquo;IRPEF netta è zero</td>
+        <td>art. 50 D.Lgs. 446/1997 per la regionale, art. 1 D.Lgs. 360/1998 per
+        la comunale</td>
+        <td><span class="tag t-norma">norma</span> testo degli articoli</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+
+  <!-- =========================================================== -->
+  <h2>5 · Lato azienda: contributi, INAIL, TFR</h2>
+  <div class="tabella">
+  <table>
+    <thead>
+      <tr><th>Voce</th><th>Valore usato</th><th>Norma</th><th>Verificato su</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>IVS a carico datore</td>
+        <td class="num">23,81% — complemento del 9,19% del lavoratore sul 33%
+        complessivo</td>
+        <td>aliquota IVS del Fondo pensioni lavoratori dipendenti</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.gia.pr.it/download/29078/2023/02/All-2-INPS-TABELLE-CONTRIBUTI-OPERAI-E-IMPIEGATI-OP_IMP_CTB_23.pdf" target="_blank" rel="noopener">tabella aliquote contributive INPS</a>
+        pubblicata da Confindustria Parma</td>
+      </tr>
+      <tr>
+        <td>Voci minori industria</td>
+        <td>CIGO, CIGS, NASpI, CUAF, maternità, fondo di garanzia TFR: i due
+        preset industria coincidono con la riga &ldquo;Impiegati - Quadri&rdquo;
+        della tabella INPS, 28,46% e 29,36%</td>
+        <td>D.Lgs. 148/2015 per CIGO e CIGS; art. 2 commi 25–28 L. 92/2012 per la
+        NASpI; art. 2 L. 297/1982 per il fondo di garanzia</td>
+        <td><span class="tag t-sec">secondaria</span> stessa tabella INPS, riga
+        &ldquo;Impiegati - Quadri&rdquo;, gennaio 2023</td>
+      </tr>
+      <tr>
+        <td>Contributo di malattia, terziario</td>
+        <td class="num">2,44%</td>
+        <td>tabelle contributive per codice statistico contributivo</td>
+        <td><span class="tag t-sec">secondaria</span> tabelle di consulenti del
+        lavoro. <b>Non verificata su circolare INPS</b></td>
+      </tr>
+      <tr>
+        <td>Soglia FIS</td>
+        <td class="num">0,50% complessivo fino a 5 dipendenti, 0,80% sopra, due
+        terzi a carico del datore. Dovuto da chi non è coperto dalla CIGO,
+        quindi da tutto il terziario</td>
+        <td>D.Lgs. 148/2015 come modificato dalla L. 234/2021</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.geps.it/aumento-aliquote-contributive-per-il-fondo-di-solidarieta-fis-ammortizzatori-sociali-per-tutti-anche-solo-per-1-dipendente-6043/" target="_blank" rel="noopener">GEPS</a>,
+        <a href="https://www.lavorofacile.it/news/contributi-2026--la-tabella-delle-aliquote-nettizzate" target="_blank" rel="noopener">Lavorofacile</a></td>
+      </tr>
+      <tr>
+        <td>Soglia CIGS</td>
+        <td class="num">0,90% complessivo, di cui 0,60% al datore. Dovuta sopra i
+        <b>15</b> dipendenti in tutti i settori: prima nel terziario la soglia era
+        50, ed è il punto dove sbagliano le tabelle vecchie</td>
+        <td>riforma degli ammortizzatori sociali, L. 234/2021</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.lavorofacile.it/news/contributi-2026--la-tabella-delle-aliquote-nettizzate" target="_blank" rel="noopener">Lavorofacile</a></td>
+      </tr>
+      <tr>
+        <td>Contributo ex CUAF</td>
+        <td class="num">0,68%, ancora dovuto anche dopo l&rsquo;assegno unico</td>
+        <td>il D.Lgs. 230/2021 ha sostituito gli assegni familiari senza toccare
+        l&rsquo;obbligo contributivo</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.consulentidellavoro.it/index.php/component/k2/item/15657" target="_blank" rel="noopener">Consulenti del Lavoro</a>,
+        <a href="https://www.lavoroediritti.com/leggi-e-prassi/contributo-ex-cuaf-esonero-assegno-unico" target="_blank" rel="noopener">Lavoro e Diritti</a></td>
+      </tr>
+      <tr>
+        <td>Inquadramento aziendale</td>
+        <td>l&rsquo;aliquota complessiva dipende dal codice statistico
+        contributivo, cioè da settore e dimensione: non è un numero unico</td>
+        <td>procedura di classificazione dei datori di lavoro INPS</td>
+        <td><span class="tag t-ente">ente</span>
+        <a href="https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.manuale-di-classificazione-previdenziale-e-compatibilit-ateco-csc-ca.html" target="_blank" rel="noopener">INPS — manuale di classificazione (CSC)</a>,
+        <a href="https://www.inps.it/it/it/inps-comunica/diritti-e-obblighi-in-materia-di-sicurezza-sociale-nell-unione-e/per-le-imprese/datori-di-lavoro--classificazione-e-procedura-di-inquadramento.html" target="_blank" rel="noopener">INPS — inquadramento</a>;
+        <a href="https://www.edotto.com/articolo/inquadramento-previdenziale-il-csc-individua-laliquota-inps" target="_blank" rel="noopener">Edotto</a></td>
+      </tr>
+      <tr>
+        <td>Premio INAIL</td>
+        <td class="num">voce di tariffa 0722 &ldquo;attività di ufficio&rdquo;:
+        4‰ nel terziario, 5‰ nell&rsquo;industria, 6‰ nell&rsquo;artigianato</td>
+        <td>tariffe dei premi, DM 27 febbraio 2019; ambito della voce chiarito
+        dalla circolare INAIL n. 38 del 24 giugno 2025</td>
+        <td><span class="tag t-ente">ente</span>
+        <a href="https://www.fiscoetasse.com/files/20328/circolare-38-2025.pdf" target="_blank" rel="noopener">INAIL, circolare n. 38/2025</a>;
+        <a href="https://www.confcommercio.it/documents/20126/501967/Brochure+Tariffe+INAIL+Seminario_DefinitivaMaggio2019.pdf/9783d8d8-4464-4dc9-0a55-be7f95aa63a6" target="_blank" rel="noopener">Confcommercio</a>,
+        <a href="https://www.fiscal-focus.it/lavoro/info-lavoro/lavoro-previdenza/inail-voce-di-tariffa-0722-evoluzione-e-ambito-applicativo,3,174495" target="_blank" rel="noopener">Fiscal Focus</a>,
+        <a href="https://www.studiocerbone.com/attivita-dufficio-applicazione-voce-di-tariffa-0722-delle-tariffe-dei-premi-2019-circolare-n-38-del-24-giugno-2025-dellinail/" target="_blank" rel="noopener">Studio Cerbone</a></td>
+      </tr>
+      <tr>
+        <td>Quota annua di TFR</td>
+        <td class="num">retribuzione / 13,5 = 7,407% della RAL</td>
+        <td>art. 2120 c.c.</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo</td>
+      </tr>
+      <tr>
+        <td>Contributo TFR al fondo pensioni</td>
+        <td class="num">0,50% della retribuzione, che esce
+        dall&rsquo;accantonamento: al lavoratore restano 6,91%</td>
+        <td>art. 3 L. 297/1982</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo</td>
+      </tr>
+      <tr>
+        <td>Massimale lato azienda</td>
+        <td>si applica alla sola quota IVS: le altre voci si pagano su tutta la
+        RAL</td>
+        <td>art. 2 comma 18 L. 335/1995</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo</td>
+      </tr>
+      <tr>
+        <td>IRAP</td>
+        <td>fuori dal calcolo: per i dipendenti a tempo indeterminato il costo è
+        integralmente deducibile, quindi su questo dipendente l&rsquo;imposta è
+        zero</td>
+        <td>art. 11 D.Lgs. 446/1997</td>
+        <td><span class="tag t-norma">norma</span> testo dell&rsquo;articolo</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+
+  <!-- =========================================================== -->
+  <h2>6 · Agevolazioni contributive</h2>
+  <div class="tabella">
+  <table class="compatta">
+    <thead>
+      <tr><th>Misura</th><th>Sconto e durata</th><th>Norma</th><th>Verificato su</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Under 30, prima assunzione a tempo indeterminato</td>
+        <td class="num">50% dei contributi INPS, max 3.000 €/anno, 36 mesi.
+        Nessuna istanza: si espone in Uniemens con la causale EG30</td>
+        <td>L. 205/2017 art. 1 c. 100 ss.</td>
+        <td><span class="tag t-ente">ente</span> INPS, circolare n. 57/2023;
+        <a href="https://www.fiscoetasse.com/approfondimenti/17074-bonus-assunzioni-2026-gli-incentivi-strutturali-attivi.html" target="_blank" rel="noopener">Fisco e Tasse</a></td>
+      </tr>
+      <tr>
+        <td>Donna in condizione svantaggiata</td>
+        <td class="num">50% di contributi INPS <b>e premio INAIL</b>, senza
+        tetto, 18 mesi. Modulo 92-2012, codice di autorizzazione 2H, tipo
+        contribuzione 55</td>
+        <td>L. 92/2012 art. 4 c. 8–11</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.geps.it/assunzioni-agevolate-2026-mappa-completa-degli-incentivi-tra-novita-della-manovra-e-misure-strutturali-10984/" target="_blank" rel="noopener">GEPS</a></td>
+      </tr>
+      <tr>
+        <td>Over 50 disoccupato da oltre 12 mesi</td>
+        <td class="num">50% di contributi INPS <b>e premio INAIL</b>, senza
+        tetto, 18 mesi. Stessa procedura della misura precedente</td>
+        <td>L. 92/2012 art. 4 c. 8</td>
+        <td><span class="tag t-sec">secondaria</span>
+        <a href="https://www.geps.it/assunzioni-agevolate-2026-mappa-completa-degli-incentivi-tra-novita-della-manovra-e-misure-strutturali-10984/" target="_blank" rel="noopener">GEPS</a></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+
+  <!-- =========================================================== -->
+  <h2>7 · Medie retributive</h2>
+  <p class="intro">Questi dati statistici non incidono sul calcolo matematico del netto, ma fungono unicamente da parametro di riferimento per contestualizzare la retribuzione inserita rispetto alle medie di mercato.</p>
+  <div class="tabella">
+  <table class="compatta">
+    <thead>
+      <tr><th>Dato</th><th>Valore</th><th>Fonte</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>RAL media, settore privato</td>
+        <td class="num">32.991 € (dati 2025)</td>
+        <td rowspan="3"><span class="tag t-sec">secondaria</span>
+        <b>JP Salary Outlook 2026</b>, Osservatorio JobPricing.</td>
+      </tr>
+      <tr>
+        <td>Per qualifica</td>
+        <td class="num">operai 27.909 € · impiegati 34.635 € · quadri 56.551 € ·
+        dirigenti 106.556 €</td>
+      </tr>
+      <tr>
+        <td>Per settore</td>
+        <td class="num">da 26.640 € (agricoltura) a 45.461 € (servizi finanziari
+        e assicurativi). Industria, servizi/commercio ed edilizia sono
+        arrotondati alla fonte e la pagina li segnala come indicativi</td>
+      </tr>
+      <tr>
+        <td>Termini di paragone</td>
+        <td class="num">ISTAT 37.302 € (2022, unità con almeno 10 dipendenti,
+        ricondotta ad anno pieno e tempo pieno) · INPS 24.486 € (2024, che
+        include part-time e anni lavorati solo in parte)</td>
+        <td><span class="tag t-ente">ente</span> ISTAT e INPS.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+
+  <!-- =========================================================== -->
+  <h2>8 · Elenco dei link, per ente</h2>
+  <ul class="link">
+    <li><span class="ente">MEF — Dipartimento delle finanze</span>
+      <a href="https://www1.finanze.gov.it/finanze2/dipartimentopolitichefiscali/fiscalitalocale/addregirpef/sceltaregione.htm" target="_blank" rel="noopener">Addizionale regionale IRPEF, ricerca per regione</a> ·
+      <a href="https://www1.finanze.gov.it/finanze2/dipartimentopolitichefiscali/fiscalitalocale/nuova_addcomirpef/sceltaregione.htm" target="_blank" rel="noopener">Addizionale comunale IRPEF, ricerca per comune</a> ·
+      <a href="https://www.mef.gov.it/focus/Principali-misure-della-legge-di-bilancio-2026/" target="_blank" rel="noopener">Principali misure della Legge di Bilancio 2026</a>
+    </li>
+    <li><span class="ente">Agenzia delle Entrate</span>
+      <a href="https://www.agenziaentrate.gov.it/portale/documents/20143/8410823/Circolare+lavoro+dipendente+LB2025+DD+IRPEF+n.+4+del+16+maggio+2025.pdf/36979eaa-9fc5-a4ec-a7aa-136497c53f91" target="_blank" rel="noopener">Circolare n. 4 del 16 maggio 2025 — lavoro dipendente e IRPEF</a>
+    </li>
+    <li><span class="ente">Ministero del Lavoro</span>
+      <a href="https://www.lavoro.gov.it/notizie/pagine/legge-di-bilancio-2026-le-principali-misure-lavoratori-imprese-e-famiglie" target="_blank" rel="noopener">Legge di Bilancio 2026, misure per lavoratori e imprese</a>
+    </li>
+    <li><span class="ente">INPS</span>
+      <a href="https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.02.lavoratori-dipendenti-limite-minimo-di-retribuzione-giornaliera-2026.html" target="_blank" rel="noopener">Minimali e massimali contributivi 2026</a> ·
+      <a href="https://www.inps.it/it/it/inps-comunica/notizie/dettaglio-news-page.news.2026.04.CU-2026--benefici-fiscali.html" target="_blank" rel="noopener">CU 2026, benefici fiscali</a> ·
+      <a href="https://www.inps.it/it/it/dettaglio-scheda.it.schede-servizio-strumento.schede-servizi.manuale-di-classificazione-previdenziale-e-compatibilit-ateco-csc-ca.html" target="_blank" rel="noopener">Manuale di classificazione dei datori di lavoro (CSC)</a> ·
+      <a href="https://www.inps.it/it/it/inps-comunica/diritti-e-obblighi-in-materia-di-sicurezza-sociale-nell-unione-e/per-le-imprese/datori-di-lavoro--classificazione-e-procedura-di-inquadramento.html" target="_blank" rel="noopener">Classificazione e procedura di inquadramento</a> ·
+      <a href="https://www.gia.pr.it/download/29078/2023/02/All-2-INPS-TABELLE-CONTRIBUTI-OPERAI-E-IMPIEGATI-OP_IMP_CTB_23.pdf" target="_blank" rel="noopener">Tabelle contributi operai e impiegati (via Confindustria Parma)</a>
+    </li>
+    <li><span class="ente">INAIL</span>
+      <a href="https://www.fiscoetasse.com/files/20328/circolare-38-2025.pdf" target="_blank" rel="noopener">Circolare n. 38 del 24 giugno 2025, voce di tariffa 0722</a> ·
+      <a href="https://www.confcommercio.it/documents/20126/501967/Brochure+Tariffe+INAIL+Seminario_DefinitivaMaggio2019.pdf/9783d8d8-4464-4dc9-0a55-be7f95aa63a6" target="_blank" rel="noopener">Tariffe dei premi 2019 (brochure Confcommercio)</a> ·
+      <a href="https://www.testo-unico-sicurezza.com/_iserv/dlfiles/dl.php?ddl=agg-tariffe-dei-premi-inail-2019.pdf" target="_blank" rel="noopener">Tariffe dei premi 2019, testo aggiornato</a>
+    </li>
+    <li><span class="ente">Enti locali</span>
+      <a href="https://www.regione.lombardia.it/bollo-auto-e-tributi-regionali/red-addizionale-regionale-irpef" target="_blank" rel="noopener">Regione Lombardia — addizionale regionale</a> ·
+      <a href="https://www.comune.milano.it/en/argomenti/tributi/addizionale-comunale-irpef" target="_blank" rel="noopener">Comune di Milano — aliquota</a> ·
+      <a href="https://servizicrm.comune.milano.it/centro-supporto/KA-01737/Esenzioni-addizionale-comunale-IRPEF" target="_blank" rel="noopener">Comune di Milano — esenzioni</a>
+    </li>
+    <li><span class="ente">Contributi e aliquote — fonti professionali</span>
+      <a href="https://www.consulentidellavoro.it/home/storico-articoli/19330-contributi-2026-aggiornati-minimali-e-massimali" target="_blank" rel="noopener">Consulenti del Lavoro — minimali e massimali 2026</a> ·
+      <a href="https://www.consulentidellavoro.it/index.php/component/k2/item/15657" target="_blank" rel="noopener">Consulenti del Lavoro — contributo ex CUAF</a> ·
+      <a href="https://www.fiscoetasse.com/normativa-prassi/13549-retribuzioni-minime-e-massimali-contributivi-2026-i-nuovi-importi.html" target="_blank" rel="noopener">FiscoeTasse — massimali 2026</a> ·
+      <a href="https://www.ecnews.it/lavoro/news-del-giorno/contributi-inps-2026-stabiliti-minimali-massimali/" target="_blank" rel="noopener">EC News — minimali e massimali 2026</a> ·
+      <a href="https://www.lavorofacile.it/news/contributi-2026--la-tabella-delle-aliquote-nettizzate" target="_blank" rel="noopener">Lavorofacile — aliquote nettizzate 2026</a> ·
+      <a href="https://www.geps.it/aumento-aliquote-contributive-per-il-fondo-di-solidarieta-fis-ammortizzatori-sociali-per-tutti-anche-solo-per-1-dipendente-6043/" target="_blank" rel="noopener">GEPS — aliquote FIS</a> ·
+      <a href="https://www.lavoroediritti.com/leggi-e-prassi/contributo-ex-cuaf-esonero-assegno-unico" target="_blank" rel="noopener">Lavoro e Diritti — ex CUAF e assegno unico</a> ·
+      <a href="https://www.kitech.it/Aliquote-contributive-INPS.aspx" target="_blank" rel="noopener">Kitech — aliquote contributive INPS</a> ·
+      <a href="https://www.edotto.com/articolo/inquadramento-previdenziale-il-csc-individua-laliquota-inps" target="_blank" rel="noopener">Edotto — il CSC individua l&rsquo;aliquota</a> ·
+      <a href="https://fiscomania.com/calcolo-contributi-versati/" target="_blank" rel="noopener">Fiscomania — calcolo dei contributi</a>
+    </li>
+    <li><span class="ente">IRPEF, detrazioni e bonus — fonti professionali</span>
+      <a href="https://fiscomania.com/aliquote-irpef/" target="_blank" rel="noopener">Fiscomania — aliquote e scaglioni</a> ·
+      <a href="https://www.cafacli.it/it/notizie-fisco/irpef-2026-sconto-di-due-punti-sulla-seconda-aliqu_2328_idnews/" target="_blank" rel="noopener">CAF ACLI — seconda aliquota al 33%</a> ·
+      <a href="https://www.ipsoa.it/guide/irpef-calcolo" target="_blank" rel="noopener">Ipsoa — guida al calcolo IRPEF</a> ·
+      <a href="https://www.quotidianopiu.it/dettaglio/13312445/irpef-aliquota-al-33-percento-per-redditi-tra-28000-e-50000-euro" target="_blank" rel="noopener">Quotidiano Più — aliquota 33% tra 28.000 e 50.000</a> ·
+      <a href="https://www.fiscal-focus.it/infografica/schede-infografica/irpef-riduzione-seconda-aliquota-e-sterilizzazione-del-beneficio-per-redditi-oltre-200-000-euro,3,180553" target="_blank" rel="noopener">Fiscal Focus — sterilizzazione oltre 200.000 €</a> ·
+      <a href="https://www.fiscoetasse.com/new-rassegna-stampa/2990-irpef-2026-come-cambiano-le-aliquote-con-la-legge-di-bilancio.html" target="_blank" rel="noopener">FiscoeTasse — IRPEF 2026</a> ·
+      <a href="https://fiscomania.com/detrazioni-per-redditi-da-lavoro-dipendente/" target="_blank" rel="noopener">Fiscomania — detrazioni da lavoro dipendente</a> ·
+      <a href="https://www.informazionefiscale.it/detrazioni-lavoro-dipendente-importo-calcolo" target="_blank" rel="noopener">Informazione Fiscale — calcolo della detrazione</a> ·
+      <a href="https://fiscomania.com/trattamento-integrativo-come-funziona/" target="_blank" rel="noopener">Fiscomania — trattamento integrativo</a> ·
+      <a href="https://www.eutekne.info/Sezioni/Art_990688_importo_delle_detrazioni_ridotto_di_75_euro_per_la_spettanza_del.aspx" target="_blank" rel="noopener">Eutekne — detrazioni ridotte di 75 €</a> ·
+      <a href="https://www.fiscoetasse.com/new-rassegna-stampa/3664-cu-2026-il-bonus-per-il-taglio-del-cuneo-fiscale.html" target="_blank" rel="noopener">FiscoeTasse — bonus per il taglio del cuneo</a> ·
+      <a href="https://www.fiscoetasse.com/new-rassegna-stampa/1178-taglio-cuneo-fiscale-ecco-le-novita-2025.html" target="_blank" rel="noopener">FiscoeTasse — novità sul cuneo</a>
+    </li>
+    <li><span class="ente">Familiari a carico</span>
+      <a href="https://fiscomania.com/familiari-a-carico-limiti-detrazione/" target="_blank" rel="noopener">Fiscomania — limiti e detrazioni</a> ·
+      <a href="https://cafinforma.it/detrazioni-figli-a-carico-2026/" target="_blank" rel="noopener">CAF Informa — detrazioni figli 2026</a> ·
+      <a href="https://www.dequo.it/articoli/detrazioni-coniuge-a-carico" target="_blank" rel="noopener">Dequo — detrazioni coniuge</a>
+    </li>
+    <li><span class="ente">Addizionali locali</span>
+      <a href="https://centrofiscale.com/addizionali-regionali-comunali-irpef-2026/" target="_blank" rel="noopener">CAF Centro Fiscale — addizionali 2026</a> ·
+      <a href="https://www.calcolonetto.it/guide/regione/toscana/" target="_blank" rel="noopener">CalcoloNetto — scheda Toscana</a> ·
+      <a href="https://www.tuttocalcolo.it/addizionale-irpef" target="_blank" rel="noopener">TuttoCalcolo — schede comunali</a>
+    </li>
+    <li><span class="ente">INAIL voce 0722</span>
+      <a href="https://www.fiscal-focus.it/lavoro/info-lavoro/lavoro-previdenza/inail-voce-di-tariffa-0722-evoluzione-e-ambito-applicativo,3,174495" target="_blank" rel="noopener">Fiscal Focus — evoluzione e ambito</a> ·
+      <a href="https://www.studiocerbone.com/attivita-dufficio-applicazione-voce-di-tariffa-0722-delle-tariffe-dei-premi-2019-circolare-n-38-del-24-giugno-2025-dellinail/" target="_blank" rel="noopener">Studio Cerbone — applicazione della voce</a>
+    </li>
+    <li><span class="ente">Agevolazioni all&rsquo;assunzione</span>
+      <a href="https://www.fiscoetasse.com/approfondimenti/17074-bonus-assunzioni-2026-gli-incentivi-strutturali-attivi.html" target="_blank" rel="noopener">Fisco e Tasse — incentivi strutturali attivi</a> ·
+      <a href="https://www.geps.it/assunzioni-agevolate-2026-mappa-completa-degli-incentivi-tra-novita-della-manovra-e-misure-strutturali-10984/" target="_blank" rel="noopener">GEPS — mappa degli incentivi 2026</a> ·
+      <a href="https://www.edotto.com/articolo/occupazione-giovanile-2026-vecchi-incentivi-al-capolinea-nuove-regole-in-arrivo" target="_blank" rel="noopener">Edotto — stop under 35, resta under 30</a> ·
+      <a href="https://www.studioleandroguidi.it/news/incentivi-per-le-assunzioni-del-decreto-coesione-cancellate-le-proroghe-news-001-2026/" target="_blank" rel="noopener">Studio Leandro Guidi — proroghe cancellate</a>
+    </li>
+    <li><span class="ente">Confronti con altri calcolatori</span>
+      <a href="https://techcompenso.com/calcola-stipendio-netto" target="_blank" rel="noopener">TechCompenso</a> ·
+      <a href="https://github.com/Stagnoz/CalcolatoreStipendioNetto" target="_blank" rel="noopener">Calcolatore Stipendio Netto (open source)</a>
+    </li>
+  </ul>
+
+
+</div>
+</body>
+</html>

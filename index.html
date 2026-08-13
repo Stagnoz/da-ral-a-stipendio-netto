@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Da RAL a netto — calcolatore 2026</title>
+  <style>
+    :root {
+      --ink: #0f0f0f;
+      --muted: #6e6e6e;
+      --line: #e4e4e4;
+      --line-strong: #c9c9c9;
+      --bg: #ffffff;
+      --panel: #fafafa;
+      /* Le tinte della pagina: rosso per cio' che esce dalla busta, verde
+       per cio' che la alleggerisce, ardesia per il TFR, che non e' ne'
+       l'uno ne' l'altro ma retribuzione rinviata nel tempo. Tinte piene:
+       accanto al nero della tabella un rosso spento passava per grigio
+       scuro e il segno si perdeva. Restano comunque sopra 5:1 di
+       contrasto sul bianco e sul grigio dei pannelli, quindi oltre AA. */
+      --red: #cc1f12;
+      --green: #0a7a3d;
+      --slate: #405464;
+      --radius: 4px;
+      --radius-box: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      /* Stretto in verticale di proposito: prima del calcolo la pagina
+       deve stare in uno schermo solo, testata e pannello compresi. */
+      padding: 18px 24px 16px;
+    }
+
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* ---------- testata ---------- */
+    .testata {
+      margin-bottom: 12px;
+    }
+
+    .testata h1 {
+      font-size: 1.55rem;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    .sottotitolo {
+      color: var(--muted);
+      margin-top: 5px;
+      font-size: 0.87rem;
+      max-width: 92ch;
+    }
+
+    /* Blocco richiudibile leggero: una riga da chiuso, il testo da aperto.
+     Serve a togliere dal percorso di lettura la prosa che non e' il
+     risultato, senza buttarla via. */
+    .mini {
+      margin-top: 6px;
+    }
+
+    .mini>summary {
+      cursor: pointer;
+      list-style: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 3px 0;
+    }
+
+    .mini>summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .mini>summary::before {
+      content: "";
+      width: 0;
+      height: 0;
+      flex: none;
+      border-left: 5px solid var(--line-strong);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      transition: transform .15s;
+    }
+
+    .mini[open]>summary {
+      color: var(--ink);
+    }
+
+    .mini[open]>summary::before {
+      transform: rotate(90deg);
+    }
+
+    .mini>summary:hover {
+      color: var(--ink);
+    }
+
+    .mini p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 8px;
+      max-width: 78ch;
+    }
+
+    .mini p b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* ---------- impianto a due colonne ----------
+     Gli input a sinistra restano ancorati mentre si legge il conto a
+     destra: il numero cambia sotto gli occhi, senza risalire la pagina.
+     minmax(0,1fr) impedisce alla tabella di allargare la colonna. */
+    /* 400 e non 352: alla larghezza di prima le righe sotto i titoli delle
+     sezioni andavano tutte a due righe e il pannello non ci stava in
+     altezza. Qui la colonna dei risultati perde 48 pixel, che a destra
+     non si notano, e a sinistra si guadagna una riga per sezione. */
+    .layout {
+      display: grid;
+      grid-template-columns: 400px minmax(0, 1fr);
+      gap: 34px;
+      align-items: start;
+    }
+
+    .pannello {
+      position: sticky;
+      top: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-box);
+      padding: 10px 12px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .colonna-risultati {
+      min-width: 0;
+      scroll-margin-top: 14px;
+    }
+
+    /* Prima del calcolo la pagina sta in una schermata sola. Niente
+     altezze a numero fisso: la testata occupa quello che occupa, le due
+     colonne si prendono il resto e il pannello scorre dentro di se' se
+     non basta. Cosi' la regola tiene su qualunque monitor.
+     Vale solo a due colonne: impilate la prima schermata non ci sta
+     comunque, e comprimerla renderebbe tutto stretto per niente.
+     Dopo il calcolo il vincolo cade: li' si scorre e basta. */
+    @media (min-width: 1101px) {
+      body:not([data-calcolato]) .wrap {
+        height: calc(100vh - 34px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      body:not([data-calcolato]) .layout {
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+
+      /* Il tetto e' l'altezza della riga, non una misura inventata: i due
+       riquadri restano alti quanto il loro contenuto finche' ci sta. */
+      body:not([data-calcolato]) .pannello,
+      body:not([data-calcolato]) .attesa {
+        max-height: 100%;
+      }
+    }
+
+    /* Schermi bassi: 1366x768 con la barra del browser, o un portatile a
+     scala 150%. Le misure sopra bastano fino a poco sotto i 700 pixel di
+     viewport; sotto, il pannello tornerebbe a scorrere al primo sguardo.
+     Qui si stringe quello che si puo' stringere senza togliere campi:
+     l'utente perde aria, non informazione, e la perde solo dove non ce
+     n'e'. Sotto i 1101 di larghezza le colonne sono impilate e la prima
+     schermata non ci sta comunque, quindi la regola non si applica. */
+    @media (min-width: 1101px) and (max-height: 700px) {
+      body {
+        padding-top: 12px;
+      }
+
+      .testata {
+        margin-bottom: 8px;
+      }
+
+      .testata h1 {
+        font-size: 1.35rem;
+      }
+
+      .sottotitolo {
+        margin-top: 3px;
+        font-size: 0.83rem;
+      }
+
+      .sez>summary {
+        padding: 4px 0;
+      }
+
+      .sez .facolt {
+        font-size: 0.73rem;
+      }
+
+      .pannello {
+        padding: 8px 12px;
+      }
+
+      button[type=submit] {
+        padding: 9px;
+        margin-top: 8px;
+        margin-bottom: 10px;
+      }
+    }
+
+    /* L'attributo hidden non basta su .row, che ha display:flex dal CSS:
+     senza questa riga i campi "nascosti" restano visibili. */
+    [hidden] {
+      display: none !important;
+    }
+
+    /* ---------- tab dipendente / azienda ----------
+     Controllo segmentato invece di due parole sottolineate: si vede che
+     sono due stati alternativi e che uno dei due e' spento. */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 3px;
+      margin-bottom: 6px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-box);
+    }
+
+    .tabs button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--muted);
+      background: none;
+      border-radius: var(--radius);
+      letter-spacing: 0;
+      transition: background .15s, color .15s;
+    }
+
+    .tabs button .tab-sub {
+      font-size: 0.70rem;
+      font-weight: 400;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .tabs button:hover {
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .tabs button[aria-selected="true"] {
+      color: #fff;
+      background: var(--ink);
+    }
+
+    .tabs button[aria-selected="true"] .tab-sub {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .hint-tabs {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .hint-tabs b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Un solo lato per volta. La classe la mette il tab, non il JS riga
+     per riga: cosi' aggiungere un blocco nuovo non richiede di
+     ricordarsi di nasconderlo. */
+    body[data-vista="dipendente"] .solo-azienda {
+      display: none !important;
+    }
+
+    body[data-vista="azienda"] .solo-dipendente {
+      display: none !important;
+    }
+
+    /* Sezioni facoltative, chiuse di default */
+    .sez {
+      border-top: 1px solid var(--line);
+    }
+
+    .sez>summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 5px 0;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .sez>summary::-webkit-details-marker {
+      display: none;
+    }
+
+    /* Il segno va centrato a mano: il summary ha letter-spacing, che
+     aggiunge spazio dopo il carattere e lo spinge a sinistra, e la
+     line-height ereditata lo tiene alto. Azzerati tutti e due. */
+    .sez>summary::before {
+      content: "+";
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      border: 1px solid var(--line-strong);
+      border-radius: 2px;
+      color: var(--ink);
+      font-size: 0.95rem;
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .sez[open]>summary {
+      align-items: center;
+    }
+
+    .sez>summary:hover {
+      color: var(--ink);
+    }
+
+    .sez[open]>summary {
+      color: var(--ink);
+    }
+
+    .sez[open]>summary::before {
+      content: "\2212";
+    }
+
+    .sez>.contenuto {
+      padding-bottom: 18px;
+    }
+
+    /* Il titolo da solo non dice cosa succede aprendo: sotto ci va una riga
+     che spiega a cosa serve la sezione. Sparisce a sezione aperta, dove
+     l'invito a cliccare non ha piu' senso. */
+    .sez .testo-sez {
+      display: block;
+      min-width: 0;
+    }
+
+    .sez .facolt {
+      display: block;
+      margin-top: 1px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+      font-size: 0.75rem;
+      line-height: 1.25;
+      color: var(--muted);
+    }
+
+    .sez[open] .facolt {
+      display: none;
+    }
+
+    /* Marca la sola sezione che vale su tutte e due le viste. Resta visibile
+     anche a sezione aperta, al contrario di .facolt: e' una proprieta' del
+     campo, non un invito a cliccare. Ardesia e non rosso o verde, che qui
+     vogliono dire soldi che escono o che entrano. */
+    .sez .condivisa {
+      display: inline-block;
+      margin-left: 7px;
+      vertical-align: 1px;
+      padding: 1px 7px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--slate);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* ---------- form ---------- */
+    .row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    /* Prima riga: la casella della RAL e' piu' alta di quella delle
+     mensilita', e allineandole in basso le due etichette restano
+     sfalsate di quattro pixel. I campi si tirano alla stessa altezza,
+     l'etichetta resta in cima e la casella scende in fondo: etichette
+     sulla stessa riga, caselle a filo sotto. */
+    /* Il campo Regione porta sotto la nota "determinata dal comune scelto",
+     quindi e' piu' alto del campo Comune. Allineati in basso, il select
+     della regione salirebbe di quanto misura la nota e le due etichette
+     resterebbero sfalsate. Qui i due campi si allineano in cima: le
+     etichette tornano sulla stessa riga e la nota pende sotto. */
+    .riga-residenza {
+      align-items: flex-start;
+    }
+
+    .riga-ral {
+      align-items: stretch;
+    }
+
+    .riga-ral .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .riga-ral .field> :not(label) {
+      margin-top: auto;
+    }
+
+    .field {
+      flex: 1 1 130px;
+      min-width: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+    }
+
+    .hint {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* Il campo RAL e' type=text per via del punto delle migliaia: la regola
+     va agganciata ai campi che non sono caselle di spunta, non al tipo
+     number, altrimenti la RAL resta larga quanto vuole il browser e
+     sborda sopra la mensilita'. */
+    input:not([type=checkbox]),
+    select {
+      width: 100%;
+      padding: 10px 11px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    /* La RAL e' l'unico input che conta davvero: pesa piu' degli altri. */
+    #ral {
+      font-size: 1.25rem;
+      font-weight: 700;
+      padding: 10px 12px;
+      letter-spacing: -0.02em;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    select:disabled {
+      background: var(--panel);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .nota-campo {
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    button[type=submit] {
+      width: 100%;
+      margin-top: 11px;
+      /* Sotto il bottone iniziano le sezioni facoltative, che sono un'altra
+       cosa dal comando principale: la riga di separazione non deve
+       sembrare attaccata al bottone. */
+      margin-bottom: 14px;
+      padding: 11px 20px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #fff;
+      background: var(--ink);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    button[type=submit]:hover {
+      background: #333;
+    }
+
+    /* Riga fissa sotto il titolo di ogni gruppo di campi: perche' quel
+     dato viene chiesto e cosa cambia se lo si lascia stare. */
+    .perche {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.55;
+    }
+
+    .perche b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding-bottom: 10px;
+    }
+
+    .check input {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--ink);
+    }
+
+    .check label {
+      margin: 0;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 0.92rem;
+      font-weight: 400;
+      color: var(--ink);
+    }
+
+    /* Una casella spenta dall'altra deve vedersi spenta, altrimenti sembra
+     che il clic non abbia funzionato. */
+    .check input:disabled {
+      cursor: not-allowed;
+    }
+
+    .check input:disabled+label {
+      color: var(--line-strong);
+      cursor: not-allowed;
+    }
+
+    .nota {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 11px;
+      line-height: 1.55;
+    }
+
+    .nota a {
+      color: var(--ink);
+    }
+
+    /* Tre casi con regole diverse: in un paragrafo unico si perdevano.
+     Una riga per familiare, chi e' e fino a che reddito spetta. */
+    .regole {
+      list-style: none;
+      margin: 12px 0 0;
+      padding: 0;
+    }
+
+    .regole li {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.55;
+      padding: 7px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .regole b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .aliquote-attuali {
+      font-size: 0.79rem;
+      color: var(--muted);
+      margin-top: 11px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.55;
+    }
+
+    .aliquote-attuali b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .manuale {
+      margin-top: 12px;
+      padding: 13px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .manuale .row {
+      gap: 10px;
+    }
+
+    .manuale .field {
+      flex: 1 1 96px;
+    }
+
+    .etichetta-gruppo {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin: 13px 0 7px;
+    }
+
+    .etichetta-gruppo+.row .field label {
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .error {
+      color: var(--red);
+      font-size: 0.86rem;
+      margin-top: 10px;
+      display: none;
+      font-weight: 600;
+    }
+
+    /* ---------- colonna dei risultati ---------- */
+    /* Lo spazio e' riservato prima del primo calcolo: la pagina non si
+     riassesta sotto il cursore quando il risultato compare. */
+    .attesa {
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius-box);
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 32px 24px;
+    }
+
+    .attesa p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 44ch;
+      line-height: 1.6;
+    }
+
+    .attesa b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    #risultati {
+      display: none;
+    }
+
+    .valuta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .valuta span.attiva {
+      color: var(--ink);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 21px;
+      flex: none;
+    }
+
+    .switch input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: var(--line-strong);
+      border-radius: 999px;
+      transition: background .15s;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .15s;
+    }
+
+    .switch input:checked+.slider {
+      background: var(--ink);
+    }
+
+    .switch input:checked+.slider::before {
+      transform: translateX(19px);
+    }
+
+    .switch input:focus-visible+.slider {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-box);
+      overflow: hidden;
+    }
+
+    .tile {
+      background: #fff;
+      padding: 18px 20px;
+    }
+
+    .tile.primo {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .tile .label {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+    }
+
+    .tile.primo .label,
+    .tile.primo .sub {
+      color: rgba(255, 255, 255, .65);
+    }
+
+    .tile .value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      margin-top: 5px;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tile .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ---------- sconto contributivo ----------
+     Il verde e il fondo pieno lo staccano dalle tile, che sono neutre:
+     e' l'unico blocco della pagina che annuncia un risparmio, e deve
+     leggersi come tale prima ancora di leggere la cifra. */
+    .sconto {
+      margin-top: 22px;
+      border: 1px solid var(--green);
+      border-left-width: 4px;
+      border-radius: var(--radius-box);
+      background: #f1faf4;
+      padding: 15px 18px;
+    }
+
+    .sconto-testa {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sconto-label {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .sconto-nome {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    .sconto-cifra {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .sconto-riga {
+      font-size: 0.88rem;
+      margin-top: 9px;
+    }
+
+    .sconto-riga b {
+      font-weight: 600;
+    }
+
+    .sconto-riga .barrato {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .sconto-nota {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin-top: 7px;
+      max-width: 82ch;
+    }
+
+    .sconto-nota b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* ---------- blocchi del risultato ---------- */
+    .blocco {
+      margin-top: 30px;
+    }
+
+    .blocco-testa {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .azione-testa {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .azione-testa:hover {
+      color: var(--ink);
+    }
+
+    /* ---------- legenda dei segni ----------
+     Sta attaccata alla tabella che deve spiegare, non prima del
+     risultato: si legge quando serve e non occupa il primo schermo. */
+    .legenda-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 10px 13px;
+      margin-bottom: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .legenda-inline>span {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .legenda-inline b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .segno {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      width: 14px;
+      text-align: center;
+      flex: none;
+      display: inline-block;
+    }
+
+    .segno.neg {
+      color: var(--red);
+    }
+
+    .segno.pos {
+      color: var(--green);
+    }
+
+    .segno.dif {
+      color: var(--slate);
+    }
+
+    .legenda-chiusura {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.55;
+    }
+
+    .legenda-chiusura b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* ---------- confronto con la media ---------- */
+    .confronto {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-box);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+    }
+
+    .confronto:last-child {
+      margin-bottom: 0;
+    }
+
+    .confronto .titolo {
+      font-size: 0.98rem;
+      font-weight: 600;
+    }
+
+    .confronto .titolo .scarto {
+      font-weight: 700;
+    }
+
+    .confronto .scarto.sopra {
+      color: var(--green);
+    }
+
+    .confronto .scarto.sotto {
+      color: var(--red);
+    }
+
+    .confronto .fonte {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .barre-confronto {
+      margin-top: 12px;
+      display: grid;
+      gap: 7px;
+    }
+
+    .barra-confronto {
+      display: grid;
+      grid-template-columns: 8.5em 1fr auto;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.83rem;
+    }
+
+    /* La traccia e' figlia diretta della griglia e viene resa a blocco da
+     sola; il riempimento no, e da span inline ignorerebbe l'altezza. */
+    .barra-confronto .traccia {
+      display: block;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      height: 16px;
+    }
+
+    .barra-confronto .riempi {
+      display: block;
+      height: 100%;
+      border-radius: 1px;
+      background: var(--line-strong);
+    }
+
+    .barra-confronto.tua .riempi {
+      background: var(--ink);
+    }
+
+    .barra-confronto b {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    /* Il gap bianco separa le fette adiacenti dello stesso colore base */
+    .bar {
+      display: flex;
+      gap: 2px;
+      height: 24px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .bar span:first-child {
+      border-radius: 2px 0 0 2px;
+    }
+
+    .bar span:last-child {
+      border-radius: 0 2px 2px 0;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 7px 24px;
+      font-size: 0.82rem;
+    }
+
+    .legend div {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .swatch {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      flex: none;
+      position: relative;
+      top: 1px;
+    }
+
+    .legend b {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    .legend .q {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ---------- tabella di dettaglio ---------- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.89rem;
+    }
+
+    td {
+      padding: 8px 4px;
+    }
+
+    td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-top: 1px solid var(--line);
+    }
+
+    tr.sezione td {
+      padding-top: 20px;
+      padding-bottom: 6px;
+      font-weight: 700;
+      color: var(--muted);
+      border-top: none;
+    }
+
+    tr.sezione td.num {
+      font-size: 0.82rem;
+    }
+
+    /* Il titolo di sezione e' anche il comando che la chiude: chi vuole il
+     totale senza le righe lo trova sulla stessa riga. */
+    .toggle-sez {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+
+    .toggle-sez:hover {
+      color: var(--ink);
+    }
+
+    .toggle-sez::before {
+      content: "";
+      width: 0;
+      height: 0;
+      flex: none;
+      border-left: 5px solid currentColor;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      transition: transform .15s;
+    }
+
+    .toggle-sez[aria-expanded="true"]::before {
+      transform: rotate(90deg);
+    }
+
+    .nome-sez {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-weight: 700;
+    }
+
+    tr.totale td {
+      font-weight: 700;
+      border-top: 2px solid var(--ink);
+    }
+
+    .nota-riga {
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* Colore piu' mezzo grado di peso: in una colonna di cifre allineate il
+     solo colore si legge tardi, il neretto lo si vede scorrendo. */
+    td.neg {
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    td.pos {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    td.dif {
+      color: var(--slate);
+      font-weight: 600;
+    }
+
+    /* Il bottone che apre la scheda di una voce. Piccolo, davanti al nome,
+     sempre nello stesso posto: si impara una volta sola. */
+    .info {
+      position: relative;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      margin-right: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      cursor: pointer;
+      vertical-align: 1px;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+
+    /* Il cerchio resta piccolo perche' sta dentro una tabella fitta, ma
+     l'area che risponde al dito arriva a 44px: il bersaglio visibile e
+     quello reale non devono coincidere. */
+    .info::after {
+      content: "";
+      position: absolute;
+      inset: -13px;
+    }
+
+    .info:hover {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .info[aria-expanded="true"] {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    tr.scheda td {
+      padding: 0 4px 14px 4px;
+    }
+
+    .scheda-box {
+      background: var(--panel);
+      border-left: 2px solid var(--line-strong);
+      padding: 12px 14px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      /* La misura si tiene in ch, e il ch deve essere quello del testo
+       della scheda: con la dimensione sul solo <p> le larghezze in ch
+       venivano calcolate sul font del body e uscivano di un terzo piu'
+       larghe del previsto. */
+      font-size: 0.84rem;
+      max-width: 76ch;
+    }
+
+    .scheda-box .t {
+      font-weight: 700;
+      font-size: 0.86rem;
+      margin-bottom: 5px;
+    }
+
+    .scheda-box p {
+      font-size: 1em;
+      color: #333;
+      line-height: 1.55;
+    }
+
+    .scheda-box .norma {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 7px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Su schermo largo la scheda si apriva stretta e lasciava vuota meta'
+     riga. Il titolo passa a sinistra e il testo occupa la colonna
+     accanto: si usa lo spazio senza allungare la riga di lettura, che
+     resta sotto le 80 battute. Tirare il testo fino al bordo avrebbe
+     riempito la pagina peggiorando la lettura. */
+    /* Sotto i 900px la scheda resta impilata: titolo sopra, testo sotto.
+     Sopra, il titolo si sposta a fianco. La soglia sta sotto quella che
+     impila le due colonne della pagina (1100px), perche' da impilato la
+     tabella diventa larga quanto la finestra ed e' proprio li' che lo
+     spazio a destra avanzava di piu'. */
+    @media (min-width: 900px) {
+      .scheda-box {
+        max-width: 104ch;
+        display: grid;
+        grid-template-columns: 22ch minmax(0, 76ch);
+        column-gap: 28px;
+        align-items: start;
+      }
+
+      .scheda-box .t {
+        grid-column: 1;
+        grid-row: 1;
+        margin-bottom: 0;
+      }
+
+      .scheda-box p {
+        grid-column: 2;
+      }
+    }
+
+    footer {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    footer a {
+      color: var(--ink);
+    }
+
+    /* ---------- adattamenti ---------- */
+    /* Sotto i 1100px la colonna sinistra non ha piu' larghezza utile:
+     le due colonne si impilano e il pannello smette di essere ancorato,
+     altrimenti resterebbe incollato coprendo il risultato. */
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 26px;
+      }
+
+      .pannello {
+        position: static;
+        max-height: none;
+        overflow: visible;
+      }
+
+      .colonna-risultati {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 20px 14px 44px;
+      }
+
+      .testata h1 {
+        font-size: 1.5rem;
+      }
+
+      /* Al dito serve un bersaglio da 44px: sul desktop il mouse si
+       accontenta di meno. */
+      .tabs button {
+        min-height: 44px;
+      }
+
+      .sez>summary {
+        padding: 15px 0;
+      }
+
+      .toggle-sez {
+        padding: 6px 0;
+      }
+
+      .tile .value,
+      .sconto-cifra {
+        font-size: 1.55rem;
+      }
+
+      .pannello {
+        padding: 14px;
+      }
+
+      .legend {
+        grid-template-columns: 1fr;
+      }
+
+      .barra-confronto {
+        grid-template-columns: 6.5em 1fr;
+      }
+
+      .barra-confronto b {
+        grid-column: 2;
+        text-align: right;
+      }
+
+      .attesa {
+        min-height: 180px;
+      }
+
+      /* La tabella non si stringe oltre: scorre da sola invece di
+       spingere fuori la pagina. */
+      .tabella-scroll {
+        overflow-x: auto;
+      }
+
+      .tabella-scroll table {
+        min-width: 380px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body data-vista="dipendente">
+  <div class="wrap">
+
+    <header class="testata">
+      <h1>Da RAL a netto</h1>
+      <p class="sottotitolo">Proiezione 2026 della retribuzione a partire dalla
+        retribuzione annua lorda. Da un lato quello che resta al dipendente,
+        dall&rsquo;altro quello che spende l&rsquo;azienda: stessa RAL, due conti
+        diversi.</p>
+
+      <details class="mini">
+        <summary>Ipotesi del calcolo</summary>
+        <p><b>Assunzioni:</b> dipendente a tempo indeterminato, calcolo sull&rsquo;intero anno (12 mesi lavorati).</p>
+        <p><b>Impostazioni di default (modificabili):</b> residente a Milano, senza familiari a carico n&eacute;
+          agevolazioni attive. <b>Queste voci si possono cambiare nei riquadri qui sotto</b>.</p>
+        <p><b>Inquadramento dell&rsquo;azienda (modificabile):</b> industria fino a 15 dipendenti, con tasso INAIL allo
+          0,5%.
+        </p>
+      </details>
+    </header>
+
+    <div class="layout">
+
+      <!-- ============ colonna degli input ============ -->
+      <aside class="pannello">
+
+        <div class="tabs" role="tablist" aria-label="Punto di vista">
+          <button type="button" role="tab" id="tabDipendente" aria-selected="true" aria-controls="risultati">
+            Lato dipendente
+            <span class="tab-sub">Netto in busta</span>
+          </button>
+          <button type="button" role="tab" id="tabAzienda" aria-selected="false" aria-controls="risultati">
+            Lato azienda
+            <span class="tab-sub">Quanto deve pagare l&rsquo;azienda</span>
+          </button>
+        </div>
+        <p class="hint-tabs">
+          <span class="solo-dipendente">Clicca su <b>Lato azienda</b> per vedere quanto costa il lavoro.</span>
+          <span class="solo-azienda">Clicca su <b>Lato dipendente</b> per vedere il netto in busta.</span>
+        </p>
+
+        <form id="form" novalidate>
+
+          <div class="row riga-ral">
+            <div class="field" style="flex:1 1 160px">
+              <label for="ral">Stipendio (RAL) <span class="hint">— annuo lordo, &euro;</span></label>
+              <!-- Campo di testo e non number: un input number non accetta il
+                 punto delle migliaia, e senza punto 35000 e 3500 si
+                 distinguono male proprio mentre li si scrive. Il
+                 raggruppamento e le frecce su/giu' li rimette app.js. -->
+              <input type="text" id="ral" inputmode="numeric" autocomplete="off" value="30.000" required
+                aria-describedby="errore">
+            </div>
+            <div class="field solo-dipendente" style="flex:0 1 92px">
+              <label for="mensilita">Mensilit&agrave;</label>
+              <select id="mensilita">
+                <option value="12" selected>12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit">Calcola</button>
+          <p class="error" id="errore">Inserisci una RAL tra 1.000 e 999.000 euro.</p>
+
+          <details class="sez solo-dipendente">
+            <summary><span class="testo-sez">Residenza
+                <span class="facolt">Clicca qui per cambiare comune: s&igrave;, la
+                  residenza cambia il netto (facoltativo)</span></span></summary>
+            <div class="contenuto">
+              <p class="perche"><b>Perch&eacute; la residenza.</b> Oltre all&rsquo;IRPEF nazionale esistono due imposte
+                locali (regionale e comunale) con aliquote decise autonomamente dai singoli enti, che possono variare il
+                netto in modo significativo.</p>
+              <div class="row riga-residenza">
+                <div class="field">
+                  <label for="comune">Comune</label>
+                  <select id="comune"></select>
+                </div>
+                <div class="field">
+                  <label for="regione">Regione</label>
+                  <select id="regione"></select>
+                  <p class="nota-campo" id="regioneBloccata">Determinata dal comune scelto</p>
+                </div>
+              </div>
+              <p class="aliquote-attuali" id="aliquoteAttuali"></p>
+
+              <div class="manuale" id="manualeComune" hidden>
+                <div class="row">
+                  <div class="field">
+                    <label for="comuneTipo">Aliquota comunale</label>
+                    <select id="comuneTipo">
+                      <option value="unica" selected>unica</option>
+                      <option value="scaglioni">a scaglioni</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="comuneEsenzione">Esente fino a <span class="hint">&euro;</span></label>
+                    <input type="number" id="comuneEsenzione" min="0" max="60000" step="500" value="0">
+                  </div>
+                </div>
+                <div class="row" id="comuneUnica">
+                  <div class="field">
+                    <label for="comuneAliquota">Aliquota unica <span class="hint">— %</span></label>
+                    <input type="number" id="comuneAliquota" min="0" max="3" step="0.01" value="0.80">
+                  </div>
+                </div>
+                <div id="comuneScaglioni" hidden>
+                  <p class="etichetta-gruppo">Aliquote per scaglione di imponibile, in %</p>
+                  <div class="row">
+                    <div class="field"><label for="comuneS1">fino a 15.000 &euro;</label>
+                      <input type="number" id="comuneS1" min="0" max="3" step="0.01" value="0.80">
+                    </div>
+                    <div class="field"><label for="comuneS2">fino a 28.000 &euro;</label>
+                      <input type="number" id="comuneS2" min="0" max="3" step="0.01" value="0.80">
+                    </div>
+                    <div class="field"><label for="comuneS3">fino a 50.000 &euro;</label>
+                      <input type="number" id="comuneS3" min="0" max="3" step="0.01" value="0.80">
+                    </div>
+                    <div class="field"><label for="comuneS4">oltre 50.000 &euro;</label>
+                      <input type="number" id="comuneS4" min="0" max="3" step="0.01" value="0.80">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="manuale" id="manualeRegione" hidden>
+                <div class="row">
+                  <div class="field">
+                    <label for="regioneTipo">Aliquota regionale</label>
+                    <select id="regioneTipo">
+                      <option value="scaglioni" selected>a scaglioni</option>
+                      <option value="unica">unica</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="regioneScaglioni">
+                  <p class="etichetta-gruppo">Aliquote per scaglione di imponibile, in %</p>
+                  <div class="row">
+                    <div class="field"><label for="regioneS1">fino a 15.000 &euro;</label>
+                      <input type="number" id="regioneS1" min="0" max="4" step="0.01" value="1.23">
+                    </div>
+                    <div class="field"><label for="regioneS2">fino a 28.000 &euro;</label>
+                      <input type="number" id="regioneS2" min="0" max="4" step="0.01" value="1.58">
+                    </div>
+                    <div class="field"><label for="regioneS3">fino a 50.000 &euro;</label>
+                      <input type="number" id="regioneS3" min="0" max="4" step="0.01" value="1.72">
+                    </div>
+                    <div class="field"><label for="regioneS4">oltre 50.000 &euro;</label>
+                      <input type="number" id="regioneS4" min="0" max="4" step="0.01" value="1.73">
+                    </div>
+                  </div>
+                </div>
+                <div class="row" id="regioneUnica" hidden>
+                  <div class="field">
+                    <label for="regioneAliquota">Aliquota unica <span class="hint">— %</span></label>
+                    <input type="number" id="regioneAliquota" min="0" max="4" step="0.01" value="1.23">
+                  </div>
+                </div>
+              </div>
+
+              <p class="nota">Scegliendo &ldquo;Altro comune&rdquo; puoi inserire e personalizzare le aliquote di comune
+                e regione a piacimento. Le aliquote ufficiali si possono consultare sul portale del MEF per l&rsquo;<a
+                  href="https://www1.finanze.gov.it/finanze2/dipartimentopolitichefiscali/fiscalitalocale/addregirpef/sceltaregione.htm"
+                  target="_blank" rel="noopener">addizionale regionale</a> e l&rsquo;<a
+                  href="https://www1.finanze.gov.it/finanze2/dipartimentopolitichefiscali/fiscalitalocale/nuova_addcomirpef/sceltaregione.htm"
+                  target="_blank" rel="noopener">addizionale comunale</a>. Nota sull&rsquo;esenzione: indica la soglia
+                di imponibile entro cui non si paga l&rsquo;aliquota; superata la soglia, si paga sull&rsquo;intero
+                importo.</p>
+            </div>
+          </details>
+
+          <details class="sez solo-dipendente">
+            <summary><span class="testo-sez">Familiari a carico
+                <span class="facolt">Clicca qui per coniuge, figli e ascendenti a carico:
+                  sono detrazioni, alzano il netto (facoltativo)</span></span></summary>
+            <div class="contenuto">
+              <p class="perche"><b>Perch&eacute; la famiglia.</b> Un familiare &egrave;
+                <i>a carico</i> quando il suo reddito personale sta sotto 2.840,51 &euro;
+                l&rsquo;anno, 4.000 &euro; per i figli fino a 24 anni. Chi ha qualcuno a
+                carico ottiene una detrazione, cio&egrave; uno sconto che si sottrae
+                direttamente dall&rsquo;imposta.
+              </p>
+              <div class="check">
+                <input type="checkbox" id="coniuge">
+                <label for="coniuge">Coniuge a carico</label>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="figli">Figli a carico <span class="hint">— 21-30 anni</span></label>
+                  <select id="figli">
+                    <option value="0" selected>nessuno</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="altri">Ascendenti conviventi</label>
+                  <select id="altri">
+                    <option value="0" selected>nessuno</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                  </select>
+                </div>
+              </div>
+              <ul class="regole">
+                <li><b>Coniuge</b> — non separato. Parte da 800 &euro; se il tuo reddito
+                  sta sotto i 15.000 &euro;, si assesta su 690 &euro; nella fascia centrale,
+                  poi cala fino ad azzerarsi a 80.000 &euro;.</li>
+                <li><b>Figli</b> — solo tra 21 e 30 anni; in caso di figli disabili non c&rsquo;&egrave; limite
+                  d&rsquo;et&agrave;. Prevedono una detrazione base di 950 &euro; ciascuno, che cala al salire del tuo
+                  reddito e si azzera a 95.000 &euro;, soglia che sale di 15.000 &euro; per ogni figlio dopo il primo.
+                </li>
+                <li><b>Ascendenti</b> — genitori o nonni, solo se convivono con te. Prevedono una detrazione base di 750
+                  &euro; ciascuno, che si azzera quando il tuo reddito arriva a 80.000 &euro;.</li>
+              </ul>
+              <p class="nota">Per i figli sotto i 21 anni non c&rsquo;&egrave; detrazione ma assegno unico, che
+                l&rsquo;INPS versa a parte e non passa dalla busta paga.</p>
+            </div>
+          </details>
+
+          <!-- Chiusa come le altre: aperta faceva scorrere il pannello gia'
+             al primo sguardo, e il preset di partenza va bene per il caso
+             base. La riga sotto il titolo dice cosa c'e' dentro. -->
+          <!-- Sezione condivisa dai due tab: lo stesso inquadramento decide
+             le voci del datore e le quote ripartite che il lavoratore
+             versa. Tenerne due copie avrebbe fatto divergere i due lati
+             della stessa cassa. Dentro, i campi che riguardano solo
+             l'azienda restano marcati solo-azienda. -->
+          <details class="sez">
+            <summary><span class="testo-sez">Inquadramento dell&rsquo;azienda<span class="condivisa">vale su entrambe le
+                  viste</span>
+                <span class="facolt solo-dipendente">Clicca qui per cambiare settore e
+                  dimensione: cambiano CIGS e FIS a carico tuo (facoltativo)</span>
+                <span class="facolt solo-azienda">Clicca qui per cambiare settore e
+                  dimensione: cambiano i contributi del datore (facoltativo)</span></span></summary>
+            <div class="contenuto">
+              <p class="perche solo-azienda"><b>Perch&eacute; il settore.</b> L&rsquo;aliquota a carico del datore di
+                lavoro varia in base al settore dell&rsquo;azienda e al numero di dipendenti.</p>
+              <p class="perche solo-dipendente"><b>Perch&eacute; il settore.</b> L&rsquo;aliquota contributiva a tuo
+                carico parte dal 9,19% base (quota IVS pensionistica), ma in base al settore dell&rsquo;azienda e al
+                numero di dipendenti possono aggiungersi le quote per gli ammortizzatori sociali (CIGS e FIS), portando
+                la trattenuta totale fino al 9,76%.</p>
+              <!-- Senza classe di vista: e' proprio il fatto di valere su
+               entrambe che va detto, e va detto da tutti e due i lati. -->
+              <p class="nota"><b>Unico campo condiviso dalle due viste.</b> La stessa
+                scelta decide le quote CIGS e FIS trattenute in busta al dipendente e i
+                contributi a carico del datore: cambiandola qui cambiano sia il netto
+                sia il costo aziendale. Passando all&rsquo;altra vista la ritrovi come
+                l&rsquo;hai lasciata.</p>
+              <div class="row">
+                <div class="field" style="flex:1 1 100%">
+                  <label for="preset">Settore e dimensione</label>
+                  <select id="preset"></select>
+                </div>
+                <div class="field solo-azienda">
+                  <label for="inail">Tasso INAIL</label>
+                  <input type="number" id="inail" min="0" max="15" step="0.1" value="0.5">
+                </div>
+              </div>
+              <p class="aliquote-attuali solo-azienda" id="aliquoteDatore"></p>
+              <p class="aliquote-attuali solo-dipendente" id="aliquoteLavoratore"></p>
+              <p class="nota solo-dipendente">Quando dovute, le trattenute a tuo carico per CIGS (0,30%) e FIS (0,27%)
+                si sommano alla quota pensionistica (IVS). Trattandosi di contributi previdenziali, sono totalmente
+                deducibili e riducono l&rsquo;imponibile fiscale.</p>
+
+              <!-- Il campo sta su tutti e due i tab: il menu e' condiviso, e
+               nasconderlo qui faceva sembrare rotta la voce "aliquota a
+               mano" quando la si sceglieva dal lato dipendente. -->
+              <div class="manuale" id="manualeDatore" hidden>
+                <div class="row">
+                  <div class="field">
+                    <label for="datoreAliquota">Aliquota complessiva a carico azienda <span class="hint">—
+                        %</span></label>
+                    <input type="number" id="datoreAliquota" min="0" max="50" step="0.01" value="28.46">
+                  </div>
+                </div>
+                <p class="nota">Inserita a mano, l&rsquo;aliquota si applica a tutta la RAL:
+                  il massimale contributivo vale solo sulla quota IVS, che qui non &egrave;
+                  pi&ugrave; distinguibile dal resto.</p>
+                <p class="nota solo-dipendente">Questa aliquota cambia solo il costo per
+                  l&rsquo;azienda. La tua quota resta il 9,19% di IVS: da un numero
+                  complessivo non si sa quanta CIGS e quanto FIS contenga, e inventarlo
+                  darebbe un netto sbagliato con l&rsquo;aria di essere preciso.</p>
+              </div>
+
+              <p class="nota solo-azienda">Le aliquote per settore si possono trovare in <a
+                  href="https://www.kitech.it/Aliquote-contributive-INPS.aspx" target="_blank" rel="noopener">questa
+                  pagina</a>; i tassi INAIL (espressi in per mille, &permil;) nelle <a
+                  href="https://www.testo-unico-sicurezza.com/_iserv/dlfiles/dl.php?ddl=agg-tariffe-dei-premi-inail-2019.pdf"
+                  target="_blank" rel="noopener">tariffe dei premi</a>, dove il tasso dipende dalla lavorazione e non
+                dallo stipendio.</p>
+              <p class="nota solo-azienda">Scegliendo &ldquo;aliquota inserita a mano&rdquo;
+                il lavoratore torna al 9,19%: di un&rsquo;aliquota complessiva non si sa
+                quanta CIGS e quanto FIS ci sia dentro, e inventarlo darebbe un netto
+                sbagliato con l&rsquo;aria di essere preciso.</p>
+            </div>
+          </details>
+
+          <details class="sez solo-dipendente">
+            <summary><span class="testo-sez">Che lavoro fai
+                <span class="facolt">Clicca qui per confrontare la RAL con la media
+                  di chi fa il tuo lavoro (facoltativo)</span></span></summary>
+            <div class="contenuto">
+              <p class="perche"><b>Perch&eacute; il lavoro.</b> Serve a dirti dove si colloca la tua RAL comparata ad
+                altre persone in Italia nel tuo settore o nel tuo inquadramento.</p>
+              <div class="row">
+                <div class="field">
+                  <label for="qualifica">Inquadramento</label>
+                  <select id="qualifica"></select>
+                </div>
+                <div class="field">
+                  <label for="settore">Settore</label>
+                  <select id="settore"></select>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Caselle e non menu a scelta singola: una persona puo' avere i
+             requisiti di piu' misure davvero, ed e' il motore a scegliere
+             quale conviene. Un menu costringerebbe a indovinarlo a mano. -->
+          <details class="sez solo-azienda">
+            <summary><span class="testo-sez">Profilo di chi viene assunto
+                <span class="facolt">Clicca qui se l&rsquo;assunto d&agrave; diritto a
+                  un&rsquo;agevolazione contributiva: abbassa il costo aziendale
+                  (facoltativo)</span></span></summary>
+            <div class="contenuto">
+              <p class="perche"><b>Perch&eacute; il profilo.</b> Alcune assunzioni danno diritto a uno sconto sui
+                contributi a carico del datore di lavoro.</p>
+              <div class="check">
+                <input type="checkbox" id="agUnder30">
+                <label for="agUnder30">Under 30</label>
+              </div>
+              <div class="check">
+                <input type="checkbox" id="agDonna">
+                <label for="agDonna">Donna in condizione svantaggiata</label>
+              </div>
+              <div class="check">
+                <input type="checkbox" id="agOver50">
+                <label for="agOver50">Over 50</label>
+              </div>
+              <p class="aliquote-attuali" id="agevolazioniAttuali"></p>
+              <p class="nota"><b>Requisiti per accedere alle agevolazioni:</b><br>
+                &bull; <b>Under 30:</b> giovani fino a 29 anni compiuti, mai assunti prima a tempo indeterminato.<br>
+                &bull; <b>Donna svantaggiata:</b> priva di un impiego regolarmente retribuito da almeno 24 mesi (oppure
+                da 6 mesi in settori o aree svantaggiate).<br>
+                &bull; <b>Over 50:</b> lavoratori con almeno 50 anni di et&agrave; e disoccupati da oltre 12 mesi.</p>
+              <p class="nota">Le misure <b>non si cumulano</b>: selezionandone
+                pi&ugrave; di una viene applicata <b>quella che fa risparmiare di
+                  pi&ugrave; nell&rsquo;anno</b>, che &egrave; l&rsquo;orizzonte di tutte
+                le cifre di questa pagina. Le misure durano per&ograve; un numero
+                diverso di mesi &mdash; 36 l&rsquo;under 30, 18 le altre due &mdash;
+                quindi su tutta la durata pu&ograve; convenire l&rsquo;altra: il
+                riquadro dei risultati lo scrive quando succede, con le cifre di
+                entrambe.</p>
+            </div>
+          </details>
+
+        </form>
+      </aside>
+
+      <!-- ============ colonna dei risultati ============ -->
+      <main class="colonna-risultati">
+
+        <div class="attesa" id="attesa">
+          <p>Inserisci la tua RAL e premi <b>Calcola</b>. Qui compaiono il
+            netto, le trattenute e il conto voce per voce, dal lato del dipendente
+            e da quello dell&rsquo;azienda.</p>
+        </div>
+
+        <div id="risultati">
+
+          <!-- Unita' di misura: vale per tutti e due i lati, quindi sta
+             fuori dai due blocchi e resta uguale cambiando tab. -->
+          <div class="valuta">
+            <span id="etEuro">Euro &euro;</span>
+            <label class="switch">
+              <input type="checkbox" id="valutaPizze" aria-label="Mostra gli importi in pizze">
+              <span class="slider"></span>
+            </label>
+            <span id="etPizze">Pizze &#127829;</span>
+          </div>
+
+          <!-- ---------- lato dipendente ---------- -->
+          <div class="solo-dipendente">
+            <div class="tiles">
+              <div class="tile primo">
+                <div class="label">Netto mensile</div>
+                <div class="value" id="outMese"></div>
+                <div class="sub" id="outMensilita"></div>
+              </div>
+              <div class="tile">
+                <div class="label">Netto annuo</div>
+                <div class="value" id="outAnno"></div>
+                <div class="sub" id="outIncidenza"></div>
+              </div>
+              <div class="tile">
+                <div class="label">Aliquota effettiva</div>
+                <div class="value" id="outAliquota"></div>
+                <div class="sub">solo imposte, in rapporto alla RAL</div>
+              </div>
+            </div>
+
+            <div class="blocco">
+              <div class="blocco-testa">
+                <h2>Dove finisce la RAL</h2>
+              </div>
+              <div class="bar" id="barra"></div>
+              <div class="legend" id="legenda"></div>
+            </div>
+
+            <div class="blocco" id="bloccoConfronto" hidden>
+              <div class="blocco-testa">
+                <h2>Rispetto alla media</h2>
+              </div>
+              <div id="confronto"></div>
+            </div>
+
+            <div class="blocco">
+              <div class="blocco-testa">
+                <h2>Il calcolo, voce per voce</h2>
+                <button type="button" class="azione-testa" data-tavola="dettaglio">Comprimi tutto</button>
+              </div>
+              <p class="legenda-inline">
+                <span><span class="segno neg">&minus;</span> <b>rosso:</b> trattenuta o imposta che paghi (diminuisce il
+                  tuo netto)</span>
+                <span><span class="segno pos">&minus;</span> <b>verde:</b> detrazione (sconto fiscale che ti fa pagare
+                  meno imposte, aumentando il tuo netto)</span>
+                <span><span class="segno pos">+</span> <b>verde:</b> bonus o accredito (si somma al tuo netto)</span>
+              </p>
+              <p class="legenda-chiusura">Il <b>segno</b> indica l&rsquo;operazione nel totale di sezione, mentre il
+                <b>colore</b> mostra l&rsquo;impatto diretto per te. Il simbolo <b>?</b> apre una sezione con
+                informazioni sulla voce.
+              </p>
+              <div class="tabella-scroll">
+                <table>
+                  <tbody id="dettaglio"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---------- lato azienda ---------- -->
+          <div class="solo-azienda">
+            <div class="tiles">
+              <div class="tile primo">
+                <div class="label">Costo annuo</div>
+                <div class="value" id="outCosto"></div>
+                <div class="sub" id="outCostoMese"></div>
+              </div>
+              <div class="tile">
+                <div class="label">Sopra la RAL</div>
+                <div class="value" id="outRicarico"></div>
+                <div class="sub" id="outMoltiplicatore"></div>
+              </div>
+              <div class="tile">
+                <div class="label">Arriva al dipendente</div>
+                <div class="value" id="outQuotaNetto"></div>
+                <div class="sub">netto in busta ogni 100 &euro; spesi</div>
+              </div>
+            </div>
+
+            <!-- Compare solo ad agevolazione attiva. Sta sopra la barra
+               perche' e' la ragione per cui i numeri sotto sono quelli
+               che sono: nascosto in fondo alla tabella non lo si vede. -->
+            <div class="sconto" id="bloccoSconto" hidden>
+              <div class="sconto-testa">
+                <div>
+                  <div class="sconto-label">Agevolazione applicata</div>
+                  <div class="sconto-nome" id="scontoNome"></div>
+                </div>
+                <div class="sconto-cifra" id="scontoCifra"></div>
+              </div>
+              <p class="sconto-riga" id="scontoConfronto"></p>
+              <!-- Dice con che criterio e' stata scelta la misura e cosa
+                 succederebbe guardando l'intera durata invece dell'anno:
+                 senza questa riga il confronto con la misura scartata,
+                 che sull'anno vale meno, sembra un errore. -->
+              <p class="sconto-nota" id="scontoCriterio"></p>
+            </div>
+
+            <div class="blocco">
+              <div class="blocco-testa">
+                <h2>Dove finiscono i soldi dell&rsquo;azienda</h2>
+              </div>
+              <div class="bar" id="barraAzienda"></div>
+              <div class="legend" id="legendaAzienda"></div>
+            </div>
+
+            <div class="blocco">
+              <div class="blocco-testa">
+                <h2>Il costo, voce per voce</h2>
+                <button type="button" class="azione-testa" data-tavola="dettaglioAzienda">Comprimi tutto</button>
+              </div>
+              <p class="legenda-inline">
+                <span><span class="segno neg">+</span> <b>rosso:</b> costo aziendale o retribuzione differita (si somma
+                  al totale speso dall&rsquo;azienda)</span>
+                <span><span class="segno pos">&minus;</span> <b>verde:</b> agevolazione contributiva (sconto che riduce
+                  il costo aziendale)</span>
+              </p>
+              <p class="legenda-chiusura">Dal punto di vista dell&rsquo;azienda quasi
+                ogni voce si <b>aggiunge</b> allo stipendio lordo: l&rsquo;unica in meno
+                &egrave; l&rsquo;agevolazione contributiva, quando c&rsquo;&egrave;. Il
+                <b>?</b> accanto a una riga spiega cosa finanzia quel contributo e chi
+                lo incassa.
+              </p>
+              <div class="tabella-scroll">
+                <table>
+                  <tbody id="dettaglioAzienda"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+    <footer>
+      Calcolatore da RAL a Netto e Costo Azienda (2026) &middot; <a href="fonti.html">Fonti e riferimenti normativi</a>
+    </footer>
+  </div>
+
+  <script src="bundle.js"></script>
+</body>
+
+</html>

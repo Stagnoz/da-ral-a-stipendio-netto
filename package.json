@@ -1,0 +1,14 @@
+{
+  "name": "calcolatore-ral-netto",
+  "version": "1.0.0",
+  "description": "Calcolatore da RAL a netto e costo azienda (normativa 2026)",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild app.js --bundle --outfile=bundle.js",
+    "dev": "esbuild app.js --bundle --outfile=bundle.js --watch",
+    "test": "node test.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
