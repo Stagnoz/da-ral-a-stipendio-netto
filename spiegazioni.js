@@ -244,8 +244,8 @@ export const SPIEGAZIONI = {
   tfr: {
     titolo: 'Quota di TFR',
     testo: 'Trattamento di Fine Rapporto: è una quota di retribuzione differita che matura ogni anno e si incassa al termine del rapporto di lavoro. ' +
-      'La quota annua è pari al 7,41% della RAL: lo 0,50% va all\'INPS come contributo pensionistico, mentre il restante 6,91% costituisce l\'accantonamento effettivo per il lavoratore. ' +
-      'Per l\'azienda è un costo reale fin dal primo anno, anche se l\'esborso avverrà al termine del contratto (o versato ai fondi pensione / Fondo Tesoreria INPS per le aziende con oltre 50 dipendenti).',
+      'La quota annua è pari al 7,41% della RAL: lo 0,50% va all\'INPS come contributo pensionistico, mentre il restante 6,91% costituisce l\'accantonamento effettivo per il lavoratore. ',
+
     norma: 'art. 2120 c.c. · art. 3 L. 297/1982',
   },
 
